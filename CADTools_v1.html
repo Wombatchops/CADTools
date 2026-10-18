@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Design Process Tool Template</title>
+<!--
+  ============================================================================
+  DESIGN PROCESS — STANDARD HTML TOOL TEMPLATE  (DP_Tool_Template_v1.html)
+  Repo: github.com/Wombatchops/Template   ·   Spec: docs/TEMPLATE_STANDARD_v1.md
+  ----------------------------------------------------------------------------
+  To build a new tool: copy this file, rename it <ToolName>_v1.html, then edit
+  ONLY the block marked "1. TOOL CONFIG" (APP, VERSION_HISTORY, NAV,
+  HEADER_RIGHT, PAGES). Everything under "2. TEMPLATE CORE" is the shared
+  standard — change it in this repo first, not per tool.
+  ============================================================================
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== Design tokens — same system as Overall Business Dashboard & Cadet Review ===== */
+  :root{
+    --paper:#e9edf1; --panel:#ffffff; --panel-alt:#f4f6f8;
+    --line:#ccd4da; --line-strong:#9aa5ae;
+    --ink:#1c2127; --ink-soft:#4b535c; --ink-faint:#7c848d;
+    --navy:#1f3a5f; --navy-deep:#132743; --navy-soft:#dbe4ee; --steel:#3a6ea5; --steel-soft:#dfeaf5;
+    --amber:#c98a1f; --amber-deep:#8a5d12; --amber-soft:#faf0dc; --amber-border:#e3c98a; --amber-ink:#6b4e0f;
+    --green:#2f7d53; --green-soft:#e2f2e8; --green-border:#bcdac8;
+    --rust:#b3432b; --rust-soft:#f7e5e0; --rust-border:#e8c4b8;
+    --radius:6px; --radius-sm:4px;
+    --font:'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+    --tab-w:132px;
+    --nav-w:250px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%; margin:0;}
+  body{font-family:var(--font); color:var(--ink); background:var(--paper); -webkit-font-smoothing:antialiased; overflow:hidden;}
+  button,input,select,textarea{font-family:var(--font); font-size:inherit; color:inherit;}
+  button{cursor:pointer;}
+  h1,h2,h3,h4,p{margin:0;}
+  a{color:var(--steel);}
+  ::selection{background:var(--steel-soft);}
+  .scroll::-webkit-scrollbar{width:10px;height:10px;}
+  .scroll::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:6px;border:2px solid var(--panel);}
+
+  #app{height:100vh; display:flex; flex-direction:column;}
+
+  /* ===== HEADER (standard) — left: logo · title · version  |  right: tool-specific ===== */
+  header.dp-head{flex:0 0 auto; background:var(--navy); color:#eef3f8; border-bottom:2px solid var(--navy-deep);
+    display:flex; align-items:center; justify-content:space-between; gap:16px; padding:12px 22px; flex-wrap:wrap;}
+  .dp-head-left{display:flex; align-items:center; gap:14px; min-width:0; flex:1 1 420px;}
+  .dp-head-left img.logo{height:28px; width:auto; display:block; flex:0 0 auto;}
+  .dp-head-left .divider{width:1px; align-self:stretch; background:rgba(255,255,255,.18);}
+  .dp-title{min-width:0;}
+  .dp-title-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .dp-title h1{font-size:19px; font-weight:600; letter-spacing:.01em; white-space:nowrap;}
+  .dp-title .sub{font-size:12px; color:#b7c7d8; margin-top:3px;}
+  .ver-btn{font-family:var(--font-mono); font-size:11.5px; color:#cfe0ef; background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.22); padding:3px 9px; border-radius:var(--radius-sm); white-space:nowrap;}
+  .ver-btn:hover{background:rgba(255,255,255,.16); color:#fff;}
+  .file-pill{font-family:var(--font-mono); font-size:10.5px; color:#8fa8c2; white-space:nowrap;}
+
+  .dp-head-right{display:flex; align-items:center; justify-content:flex-end; gap:8px; flex-wrap:wrap; flex:1 1 360px;}
+  .hgroup{display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+  .hsep{width:1px; height:22px; background:rgba(255,255,255,.18); margin:0 4px;}
+  /* Header buttons — blue (steel) / orange (amber) / ghost, as used on the dashboard tabs & backup bar */
+  .hbtn{font-size:11.5px; font-weight:600; padding:5px 11px; border-radius:var(--radius-sm); border:1px solid rgba(255,255,255,.35);
+    background:transparent; color:#eef3f8; white-space:nowrap; line-height:1.3;}
+  .hbtn:hover{background:rgba(255,255,255,.12);}
+  .hbtn.steel{background:var(--steel); border-color:var(--navy-deep); color:#fff;}
+  .hbtn.steel:hover{background:#4579b0;}
+  .hbtn.amber{background:var(--amber); border-color:var(--amber-deep); color:#fff;}
+  .hbtn.amber:hover{background:#d6962a;}
+  .hbtn:disabled{opacity:.5; cursor:default;}
+  .hpill{font-family:var(--font-mono); font-size:11.5px; color:#cfe0ef; background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.22); padding:4px 10px; border-radius:var(--radius-sm); white-space:nowrap;}
+  .hpill.warn{color:#fff; background:var(--amber); border-color:var(--amber);}
+  .hfield{display:flex; align-items:center; gap:6px;}
+  .hfield label{font-size:11px; color:#b7c7d8;}
+  .hfield select,.hfield input{font-family:var(--font-mono); font-size:11.5px; padding:4px 6px; border-radius:var(--radius-sm);
+    border:1px solid rgba(255,255,255,.35); background:#27466e; color:#fff; max-width:220px;}
+  /* Standard navigation-layout switch (always last in the header) */
+  .seg{display:inline-flex; border:1px solid var(--navy-deep); border-radius:var(--radius-sm); overflow:hidden;}
+  .seg button{border:none; border-right:1px solid var(--navy-deep); background:var(--steel); color:#fff; font-size:11px; font-weight:600; padding:5px 10px; white-space:nowrap;}
+  .seg button:last-child{border-right:none;}
+  .seg button[aria-pressed="true"]{background:var(--amber); color:#fff;}
+  .seg-label{font-size:10px; font-family:var(--font-mono); letter-spacing:.08em; text-transform:uppercase; color:#8fa8c2;}
+
+  /* ===== HORIZONTAL NAV — line 1 sections, line 2 pages, line 3 subpages ===== */
+  #hnav{flex:0 0 auto; display:none;}
+  body.nav-h #hnav{display:block;}
+  nav.tabs{display:flex; padding:0 22px; background:var(--paper); overflow-x:auto;}
+  nav.tabs:empty{display:none;}
+  .tab{width:var(--tab-w); min-width:var(--tab-w); padding:7px 8px; font-size:12px; font-weight:600; text-align:center;
+    border:1px solid var(--navy-deep); border-top:none; margin-right:-1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  nav.l1 .tab{background:var(--steel); color:#fff;}
+  nav.l1 .tab:hover{background:#4579b0;}
+  nav.l1 .tab[aria-selected="true"]{background:var(--amber); border-color:var(--amber-deep);}
+  nav.l2 .tab{background:var(--amber-soft); color:var(--amber-ink); border-color:var(--amber-border);}
+  nav.l2 .tab:hover{background:#f6e6c4;}
+  nav.l2 .tab[aria-selected="true"]{background:var(--amber); color:#fff; border-color:var(--amber-deep);}
+  nav.l3 .tab{background:var(--panel); color:var(--navy); border-color:var(--line-strong); font-weight:600; width:auto; min-width:110px; padding:6px 14px;}
+  nav.l3 .tab:hover{background:var(--steel-soft);}
+  nav.l3 .tab[aria-selected="true"]{background:var(--steel); color:#fff; border-color:var(--navy-deep);}
+  .tab .cnt{font-family:var(--font-mono); font-size:10px; opacity:.8; margin-left:5px;}
+
+  /* ===== BODY: vertical nav (left, tight) + content ===== */
+  #body{flex:1 1 auto; min-height:0; display:flex; position:relative;}
+  body.nav-h #body{margin-top:10px; border-top:1px solid var(--line);}
+
+  /* ===== VERTICAL NAV — collapsible at Section and Page level (Cadet Review pattern) ===== */
+  #vnav{display:none; width:var(--nav-w); flex:0 0 auto; background:var(--panel); border-right:1px solid var(--line); flex-direction:column; min-height:0;}
+  body.nav-v #vnav{display:flex;}
+  #vnav-split{display:none; flex:0 0 6px; background:var(--paper); cursor:col-resize; position:relative;}
+  body.nav-v #vnav-split{display:block;}
+  #vnav-split::after{content:""; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2px; height:32px; background:var(--line-strong); border-radius:2px;}
+  #vnav-split:hover::after, #vnav-split.dragging::after{background:var(--steel);}
+  .panel-head{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 10px 9px 12px;
+    border-bottom:1px solid var(--line); background:var(--panel-alt);}
+  .panel-head h2{font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
+  .panel-head .hint{font-size:10.5px; color:var(--ink-faint);}
+  .ph-actions{display:flex; gap:4px;}
+  .icon-btn{background:none; border:1px solid var(--line-strong); border-radius:3px; min-width:22px; height:20px; font-size:11px;
+    color:var(--ink-soft); line-height:1; padding:0 5px; font-family:var(--font-mono);}
+  .icon-btn:hover{background:var(--panel); color:var(--ink);}
+  .vn-body{flex:1 1 auto; overflow:auto; min-height:0; outline:none;}
+  .vn-group{border-bottom:1px solid var(--line);}
+  .vn-row{display:flex; align-items:center; gap:8px; padding:8px 10px; cursor:pointer; font-size:12.5px; user-select:none; border-left:3px solid transparent;}
+  .vn-row:hover{background:var(--panel-alt);}
+  .vn-row .chev{font-size:9px; color:var(--ink-faint); width:12px; text-align:center; flex:0 0 auto;}
+  .vn-row .nm{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .vn-row .cnt{font-family:var(--font-mono); font-size:10px; color:var(--ink-faint);}
+  .vn-all{font-weight:600; color:var(--ink-soft); border-bottom:1px solid var(--line);}
+  .vn-sec{font-weight:600;}
+  .vn-sec.selected{background:var(--steel-soft);}
+  .vn-page{padding-left:24px; font-size:12px; color:var(--ink-soft);}
+  .vn-sub{padding-left:46px; font-size:11.5px; color:var(--ink-soft);}
+  .vn-page.selected,.vn-sub.selected{background:var(--steel-soft); border-left-color:var(--steel); color:var(--ink); font-weight:600;}
+  .vn-page.in-path{color:var(--ink); font-weight:600;}
+  .vn-row.cursor{outline:1px dashed var(--steel); outline-offset:-2px;}
+  .vn-children{display:none;}
+  .vn-children.open{display:block;}
+  /* whole nav panel collapsed to a rail */
+  #vnav.collapsed{width:34px !important;}
+  #vnav.collapsed .vn-body, #vnav.collapsed .panel-head h2, #vnav.collapsed .panel-head .hint, #vnav.collapsed .ph-actions .x-exp{display:none;}
+  #vnav.collapsed .panel-head{padding:9px 5px; justify-content:center;}
+  #vnav .rail-label{display:none;}
+  #vnav.collapsed .rail-label{display:block; writing-mode:vertical-rl; transform:rotate(180deg); font-size:11px; font-weight:700; letter-spacing:.08em;
+    text-transform:uppercase; color:var(--ink-soft); padding:14px 0; margin:0 auto; cursor:pointer;}
+
+  /* ===== CONTENT ===== */
+  main#content{flex:1 1 auto; min-width:0; overflow:auto; display:flex; flex-direction:column;}
+  .page-head{flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:12px 22px 0;}
+  .crumbs{font-size:11.5px; color:var(--ink-faint);}
+  .crumbs b{color:var(--ink-soft); font-weight:600;}
+  .page-head h2{font-size:17px; font-weight:600; color:var(--navy); margin-top:2px;}
+  .page-head-actions{display:flex; gap:6px; flex-wrap:wrap;}
+  .wrap{padding:12px 22px 48px;}
+
+  /* ===== Shared components ===== */
+  .btn{appearance:none; border:1px solid var(--line-strong); background:var(--panel); color:var(--ink); padding:6px 12px; font-size:12.5px;
+    font-weight:600; border-radius:var(--radius-sm); line-height:1.3; white-space:nowrap;}
+  .btn:hover{background:var(--panel-alt);}
+  .btn:disabled{opacity:.5; cursor:default;}
+  .btn-sm{padding:3px 9px; font-size:11px;}
+  .btn-navy{background:var(--navy); border-color:var(--navy-deep); color:#fff;}
+  .btn-navy:hover{background:#274c78;}
+  .btn-steel{background:var(--steel); border-color:var(--navy-deep); color:#fff;}
+  .btn-steel:hover{background:#4579b0;}
+  .btn-amber{background:var(--amber); border-color:var(--amber-deep); color:#fff;}
+  .btn-amber:hover{background:#d6962a;}
+
+  .section-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:16px 0 10px;
+    background:var(--navy-soft); border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 12px;}
+  .section-head-left{display:flex; align-items:center; gap:10px;}
+  .section-head h3{font-size:13px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; color:var(--navy);}
+  .section-head .note{font-size:11.5px; color:var(--ink-faint);}
+  .sec-toggle{border:1px solid var(--navy); background:var(--navy); color:#fff; width:20px; height:20px; border-radius:3px; font-size:13px; font-weight:700;
+    line-height:1; display:flex; align-items:center; justify-content:center; padding:0; font-family:var(--font-mono);}
+  .sec-toggle:hover{background:var(--navy-deep);}
+  .section-body.collapsed{display:none;}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px;}
+  .card h4{font-size:13px; font-weight:700; color:var(--navy); margin-bottom:6px;}
+  .card p{font-size:12.5px; line-height:1.55; color:var(--ink-soft);}
+  .two-col{display:grid; grid-template-columns:3fr 2fr; gap:16px;}
+  @media (max-width:1100px){ .two-col{grid-template-columns:1fr;} }
+  .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px;}
+  .kpi{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:12px 14px;}
+  .kpi .lbl{font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--navy);}
+  .kpi .val{font-family:var(--font-mono); font-size:22px; font-weight:600; margin-top:6px; color:var(--ink);}
+  .kpi .sub{font-size:11px; color:var(--ink-faint); margin-top:2px;}
+
+  .st{display:inline-block; font-family:var(--font-mono); font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:2px 6px; border-radius:3px; white-space:nowrap;}
+  .st-ok{background:var(--green-soft); color:var(--green); border:1px solid var(--green-border);}
+  .st-wait{background:var(--amber-soft); color:var(--amber-ink); border:1px solid var(--amber-border);}
+  .st-bad{background:var(--rust-soft); color:var(--rust); border:1px solid var(--rust-border);}
+  .st-info{background:var(--steel-soft); color:var(--navy); border:1px solid #b9cde3;}
+  .st-na{background:var(--panel-alt); color:var(--ink-faint); border:1px solid var(--line);}
+  .banner{font-size:12.5px; padding:10px 14px; border-radius:var(--radius-sm); line-height:1.5; background:var(--amber-soft); border:1px solid var(--amber-border); color:var(--amber-ink);}
+  .banner.info{background:var(--steel-soft); border-color:#b9cde3; color:var(--navy);}
+  .banner.bad{background:var(--rust-soft); border-color:var(--rust-border); color:var(--rust);}
+  .row{display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  .demo-dark{background:var(--navy); padding:12px; border-radius:var(--radius-sm); display:flex; gap:8px; flex-wrap:wrap; align-items:center;}
+  ol.steps{margin:0; padding:12px 16px 12px 34px; background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); font-size:13px; line-height:1.6;}
+  code{font-family:var(--font-mono); font-size:11.5px; background:var(--panel-alt); border:1px solid var(--line); border-radius:3px; padding:0 4px;}
+
+  /* ===== STANDARD DATA TABLE (DPTable) — sort · Excel-style filter · hide/restore · resize · totals
+         Same look & behaviour as Overall Business Dashboard › Timesheets › Projects ===== */
+  .tbl-card{background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden;}
+  .tbl-toolbar{display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; padding:9px 12px; border-bottom:1px solid var(--line); background:var(--panel-alt);}
+  .tbl-toolbar .tl,.tbl-toolbar .tr{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .tbl-toolbar .tr{margin-left:auto;}
+  .tbl-toolbar h3{font-size:11.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-soft);}
+  .tbl-toolbar .shown{font-size:11.5px; color:var(--ink-faint);}
+  .hidden-chips{display:flex; gap:6px; flex-wrap:wrap;}
+  .hidden-chip{font-size:11px; font-weight:600; color:var(--ink-soft); background:var(--panel-alt); border:1px dashed var(--line-strong); padding:4px 9px; border-radius:12px;}
+  .hidden-chip:hover{border-color:var(--steel); color:var(--steel);}
+  .tbl-wrap{overflow-x:auto;}
+  table.dp-grid{border-collapse:separate; border-spacing:0; table-layout:fixed; min-width:100%; font-size:12px;}
+  table.dp-grid thead th{background:var(--navy); color:#fff; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em;
+    padding:0; text-align:left; white-space:nowrap; user-select:none; position:relative; border-bottom:1px solid var(--navy-deep); position:sticky; top:0; z-index:2;}
+  table.dp-grid thead th + th{border-left:1px solid rgba(255,255,255,.10);}
+  .th-inner{display:flex; align-items:center; justify-content:space-between; gap:4px; padding:9px 6px 9px 8px; overflow:hidden;}
+  .th-label{display:flex; align-items:center; gap:4px; overflow:hidden; cursor:pointer; flex:1 1 auto; min-width:0;}
+  .th-label.right{justify-content:flex-end;} .th-label.center{justify-content:center;}
+  .th-label.nosort{cursor:default;}
+  .th-text{overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;}
+  .sort-arrow{opacity:.85; font-size:9px; flex:0 0 auto;}
+  .th-controls{display:flex; align-items:center; gap:4px; flex:0 0 auto;}
+  .th-icon-btn{border:none; background:rgba(255,255,255,.12); color:#dbe6f0; width:16px; height:16px; border-radius:3px;
+    font-size:9px; line-height:1; display:flex; align-items:center; justify-content:center; padding:0;}
+  .th-icon-btn:hover{background:rgba(255,255,255,.28); color:#fff;}
+  .th-icon-btn.active{background:var(--amber); color:#2a1c00;}
+  /* narrow columns: filter / hide buttons appear on hover (or while a filter is on) so the label fits */
+  table.dp-grid thead th.th-narrow .th-controls{display:none;}
+  table.dp-grid thead th.th-narrow:hover .th-controls, table.dp-grid thead th.th-narrow:focus-within .th-controls, table.dp-grid thead th.th-narrow .th-controls:has(.active){display:flex;}
+  table.dp-grid thead th.th-narrow:hover .th-controls{position:absolute; right:8px; top:50%; transform:translateY(-50%); background:var(--navy); padding-left:3px;}
+  .rs{position:absolute; top:0; right:-3px; width:7px; height:100%; cursor:col-resize; z-index:3;}
+  .rs::after{content:""; position:absolute; top:25%; bottom:25%; left:3px; width:1px; background:rgba(255,255,255,.35);}
+  .rs:hover::after,.rs.dragging::after{background:var(--amber); width:2px;}
+  table.dp-grid td{padding:7px 8px; border-bottom:1px solid var(--line); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  table.dp-grid tbody tr:nth-child(even) td{background:var(--panel-alt);}
+  table.dp-grid tbody tr:hover td{background:var(--steel-soft);}
+  table.dp-grid td.num{font-family:var(--font-mono); font-size:11.5px; text-align:right;}
+  table.dp-grid td.center{text-align:center;}
+  table.dp-grid tfoot td{background:var(--navy-soft); font-weight:700; color:var(--navy); border-top:2px solid var(--navy); border-bottom:none;}
+  table.dp-grid td.empty{text-align:center; color:var(--ink-faint); padding:18px; white-space:normal;}
+  /* filter popup */
+  .filter-pop{position:fixed; z-index:60;}
+  .filter-panel{width:220px; background:#fff; border:1px solid var(--line-strong); border-radius:var(--radius-sm); box-shadow:0 6px 18px rgba(20,30,45,.18);
+    padding:8px; color:var(--ink); font-weight:400;}
+  .filter-search{width:100%; font-size:12px; padding:5px 7px; border:1px solid var(--line); border-radius:3px; margin-bottom:6px; background:var(--panel-alt);}
+  .filter-row{display:flex; align-items:center; gap:7px; font-size:12px; padding:3px 2px; cursor:pointer; word-break:break-word;}
+  .filter-select-all{border-bottom:1px solid var(--line); padding-bottom:6px; margin-bottom:4px; font-weight:600;}
+  .filter-list{max-height:180px; overflow-y:auto;}
+  .filter-empty{font-size:11.5px; color:var(--ink-faint); padding:8px 2px;}
+  .filter-hint{font-size:10.5px; color:var(--ink-faint); margin:-2px 0 6px;}
+  .filter-actions{display:flex; justify-content:flex-end; gap:6px; margin-top:8px; padding-top:6px; border-top:1px solid var(--line);}
+
+  /* ===== Version history modal ===== */
+  .vh-overlay{position:fixed; inset:0; background:rgba(19,39,67,.55); display:flex; align-items:center; justify-content:center; z-index:100;}
+  .vh-modal{background:var(--panel); width:min(600px,92vw); max-height:80vh; display:flex; flex-direction:column; border-radius:var(--radius-sm); box-shadow:0 12px 40px rgba(0,0,0,.3);}
+  .vh-modal-head{display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--line); background:var(--navy); color:#fff; border-radius:var(--radius-sm) var(--radius-sm) 0 0;}
+  .vh-modal-head h3{font-size:14px; font-weight:700;}
+  .vh-close{border:none; background:none; font-size:20px; line-height:1; color:#cfe0ef; padding:2px 6px;}
+  .vh-close:hover{color:#fff;}
+  .vh-modal-body{padding:14px 18px 20px; overflow:auto;}
+  .vh-entry{margin-bottom:16px;}
+  .vh-entry-head{display:flex; align-items:baseline; gap:8px; margin-bottom:5px;}
+  .vh-version{font-family:var(--font-mono); font-weight:700; font-size:12.5px; color:var(--navy); background:var(--steel-soft); padding:2px 7px; border-radius:2px;}
+  .vh-version.current{background:var(--amber); color:#fff;}
+  .vh-date{font-size:10.5px; color:var(--ink-faint); font-family:var(--font-mono);}
+  .vh-entry ul{margin:0; padding-left:20px; font-size:12.5px; line-height:1.55; color:var(--ink-soft);}
+
+  .toast{position:fixed; right:18px; bottom:18px; background:var(--navy); color:#fff; padding:10px 14px; border-radius:var(--radius-sm);
+    font-size:12.5px; box-shadow:0 4px 16px rgba(0,0,0,.2); opacity:0; transition:opacity .2s; pointer-events:none; max-width:420px; z-index:200;}
+  .toast.show{opacity:1;}
+
+  @media (max-width:760px){
+    header.dp-head{padding:10px 16px;}
+    .dp-head-left{flex-basis:100%; flex-wrap:wrap; gap:8px 12px;}
+    .dp-head-left .divider, .file-pill{display:none;}
+    .dp-title h1{white-space:normal; font-size:17px;}
+    .dp-head-right{justify-content:flex-start; flex-basis:100%;}
+    nav.tabs{padding:0 16px;}
+    .wrap,.page-head{padding-left:16px; padding-right:16px;}
+    body.nav-v #vnav{position:absolute; z-index:20; height:100%; box-shadow:4px 0 16px rgba(0,0,0,.15);}
+    body.nav-v #vnav-split{display:none;}
+  }
+  @media print{
+    body{overflow:visible;} #app{height:auto;}
+    #hnav, #vnav, #vnav-split, .dp-head-right, .th-controls, .rs, .tbl-toolbar .tr{display:none !important;}
+    main#content{overflow:visible;}
+    header.dp-head{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body class="nav-h">
+<div id="app">
+  <header class="dp-head" id="dpHead">
+    <div class="dp-head-left">
+      <img class="logo" id="dpLogo" alt="Design Process" />
+      <span class="divider" aria-hidden="true"></span>
+      <div class="dp-title">
+        <div class="dp-title-row">
+          <h1 id="dpTitle"></h1>
+          <button class="ver-btn" id="dpVersion" title="Version history"></button>
+          <span class="file-pill" id="dpFile"></span>
+        </div>
+        <div class="sub" id="dpSub"></div>
+      </div>
+    </div>
+    <div class="dp-head-right" id="dpHeadRight"></div>
+  </header>
+
+  <div id="hnav">
+    <nav class="tabs l1" id="hnavL1" role="tablist" aria-label="Sections"></nav>
+    <nav class="tabs l2" id="hnavL2" role="tablist" aria-label="Pages"></nav>
+    <nav class="tabs l3" id="hnavL3" role="tablist" aria-label="Sub-pages"></nav>
+  </div>
+
+  <div id="body">
+    <aside id="vnav" aria-label="Navigation">
+      <div class="panel-head">
+        <h2>Navigation</h2>
+        <span class="rail-label" id="vnavRail" title="Show navigation">Navigation</span>
+        <div class="ph-actions">
+          <button class="icon-btn x-exp" id="vnavExpand" title="Expand all">+</button>
+          <button class="icon-btn x-exp" id="vnavCollapse" title="Collapse all">−</button>
+          <button class="icon-btn" id="vnavHide" title="Collapse navigation panel">«</button>
+        </div>
+      </div>
+      <div class="vn-body scroll" id="vnavBody" tabindex="0"></div>
+    </aside>
+    <div id="vnav-split" title="Drag to resize"></div>
+    <main id="content">
+      <div class="page-head">
+        <div>
+          <div class="crumbs" id="crumbs"></div>
+          <h2 id="pageTitle"></h2>
+        </div>
+        <div class="page-head-actions" id="pageActions"></div>
+      </div>
+      <div class="wrap" id="pageBody"></div>
+    </main>
+  </div>
+</div>
+<div id="vh-root"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+'use strict';
+
+/* ############################################################################
+   1. TOOL CONFIG — edit this block for each new tool
+   ############################################################################ */
+
+const APP = {
+  title: 'CADTools',
+  subtitle: 'Parametric plant CAD components · Layout study model · Project library',
+  fileStem: 'CADTools',               // file name without _vN.html
+  version: 1,                         // bump every release; file name must match (_v1 → _v2)
+  defaultNavMode: 'vertical',         // 'horizontal' | 'vertical'
+  allowNavSwitch: true,
+  storageKey: 'dpCADTools'            // UNIQUE per tool
+};
+
+// Newest first. Shown when the version button in the header is clicked.
+const VERSION_HISTORY = [
+  {
+    version: 1, date: '2026-10-18',
+    changes: [
+      'Initial structure built from the CADAI notes (17 Oct 2026): Project, Earthworks, Concrete, Structural, Mechanical, Process Equipment, Multi-discipline, Piping, Electrical, Layout and Study Model.',
+      'Every component page has a proposed input set, an item register (standard table, CSV export), planned outputs and planned exports. Calculations and CAD generation are NOT built yet — inputs are proposals to confirm.',
+      'Projects: working copy kept in this browser, Save to the project library, reopen, duplicate for a new project, export / open as a versioned JSON file.',
+      'Study Model: option register with iterations, select one or more options, reject with notes and the reason, create the next iteration from feedback.',
+      'Built on DP_Tool_Template_v1 — only the TOOL CONFIG block changed.'
+    ]
+  }
+];
+
+/* ---------- Component definitions (source of NAV and PAGES) ----------
+   Field shorthand: 'key|Label|unit'  ·  select: 'key|Label||Option A/Option B'
+   A field with a unit (and no options) is numeric. c = component page; fn = special page.
+   d = description · p = proposed inputs · o = planned outputs · x = planned exports · r = references / notes
+   ALL inputs, outputs and references below are proposals for review — nothing has been engineering-checked. */
+const X_STD = ['Item register — CSV (available now)', 'AutoCAD script (.scr)', 'DXF', 'Datasheet (PDF)'];
+const HOPPER_VOL = ['vol|Live volume|m³', 'ret|Retention time|s', 'q|Flow|m³/h'];
+const AREA_P = ['tph|Design throughput|t/h', 'L|Area length|m', 'W|Area width|m', 'rl|Pad RL|m', 'access|Access road||One side/Two sides/Ring road', 'notes|Constraints|'];
+const AREA_O = ['Layout options for the area (Study Model)', 'Equipment arrangement and footprint', 'Access and maintenance clearances', 'Interfaces to adjacent areas'];
+
+const DEF = [
+  { id: 'project', label: 'Project', pages: [
+    { id: 'overview', label: 'Overview', fn: 'overview' },
+    { id: 'info', label: 'Project info', fn: 'info' },
+    { id: 'saved', label: 'Saved projects', fn: 'saved' },
+    { id: 'settings', label: 'Settings', fn: 'settings' }
+  ] },
+
+  { id: 'earthworks', label: 'Earthworks', pages: [
+    { id: 'culverts', label: 'Culverts & headwalls', subpages: [
+      { id: 'rcp', label: 'RCP culvert', c: { d: 'Reinforced concrete pipe culvert with a headwall each end: barrel length, invert levels and set-out coordinates.',
+        p: ['dia|Pipe internal dia|mm', 'barrels|No. of barrels|no.', 'len|Barrel length|m', 'il_in|Inlet IL|m', 'il_out|Outlet IL|m', 'e_in|Inlet easting|m', 'n_in|Inlet northing|m', 'e_out|Outlet easting|m', 'n_out|Outlet northing|m', 'skew|Skew angle|deg', 'hw|Headwall type||Straight/Wingwall/U-shaped', 'cls|Load class||Class 2/Class 3/Class 4/Other'],
+        o: ['Grade (%) and plan length check against coordinates', 'Cover over pipe', 'Headwall dimensions (height, width, thickness, wing length)', 'Set-out table (inlet, outlet, headwall corners)', 'Concrete and excavation quantities'],
+        r: 'Pipe sizes and load classes from the pipe manufacturer\'s catalogue (to confirm). Hydraulic sizing by others.' } },
+      { id: 'rbc', label: 'RBC culvert', c: { d: 'Reinforced box culvert (single or multi-cell) with headwalls: cell size, length, invert levels and set-out coordinates.',
+        p: ['span|Cell span|mm', 'ht|Cell height|mm', 'cells|No. of cells|no.', 'len|Barrel length|m', 'il_in|Inlet IL|m', 'il_out|Outlet IL|m', 'e_in|Inlet easting|m', 'n_in|Inlet northing|m', 'e_out|Outlet easting|m', 'n_out|Outlet northing|m', 'skew|Skew angle|deg', 'hw|Headwall type||Straight/Wingwall/U-shaped', 'base|Base slab||Precast/Cast in situ'],
+        o: ['Grade (%) and plan length check against coordinates', 'Overall width of cell group', 'Headwall and apron dimensions', 'Set-out table', 'Concrete and excavation quantities'],
+        r: 'Box sizes from the precast supplier\'s catalogue (to confirm). Hydraulic sizing by others.' } }
+    ] },
+    { id: 'workshop', label: 'Workshop & sheds', c: { d: 'Portal-frame workshop, store or shed: overall X · Y · Z dimensions with options.',
+      p: ['L|Length (X)|m', 'W|Width (Y)|m', 'eave|Eave height (Z)|m', 'pitch|Roof pitch|deg', 'bay|Bay spacing|m', 'doors|Roller doors|no.', 'doorW|Door width|m', 'doorH|Door height|m', 'crane|Crane||None/Monorail/Overhead travelling', 'swl|Crane SWL|t', 'mezz|Mezzanine||No/Yes', 'slab|Slab thickness|mm', 'clad|Cladding||Full/Open sides/Roof only'],
+      o: ['Frame grid and bay set-out', 'Envelope and ridge height', 'Door and crane hook-height clearance check', 'Slab area and volume', 'Option comparison (size / crane / cladding)'] } },
+    { id: 'stockpiles', label: 'Stockpiles', subpages: [
+      { id: 'geometry', label: 'Geometry', c: { d: 'Stockpile shape from capacity, bulk density and angle of repose.',
+        p: ['shape|Shape||Conical/Elongated/Kidney', 'cap|Design capacity|t', 'bd|Bulk density|t/m³', 'aor|Angle of repose|deg', 'dh|Discharge height|m', 'len|Elongated length|m', 'rl|Base RL|m'],
+        o: ['Height and base diameter / footprint', 'Total volume and tonnage', 'Plan and section geometry'] } },
+      { id: 'live', label: 'Live volume (bottom reclaim)', c: { d: 'Live (draw-down) volume above bottom reclaim feeders.',
+        p: ['stock|Stockpile item ID|', 'feeders|Reclaim feeders|no.', 'pitch|Feeder spacing|m', 'openL|Feeder opening length|m', 'openW|Feeder opening width|m', 'dda|Draw-down angle|deg', 'tunnel|Reclaim tunnel length|m'],
+        o: ['Live volume and live tonnage', 'Live % of total', 'Dead volume', 'Draw-down cone geometry per feeder'],
+        r: 'Method to agree: draw-down cone / valley per feeder with overlap between feeders. Draw-down angle from material testing.' } }
+    ] },
+    { id: 'dams', label: 'Turkey nest dams', c: { d: 'Above-ground ring-embankment water storage, one or more cells.',
+      p: ['cells|No. of cells|no.', 'vol|Storage per cell|ML', 'wallH|Wall height|m', 'crest|Crest width|m', 'batIn|Internal batter|1:x', 'batOut|External batter|1:x', 'fb|Freeboard|m', 'liner|Liner||HDPE/Clay/None', 'spill|Spillway||Yes/No'],
+      o: ['Cell plan dimensions (crest and toe)', 'Stage–storage table', 'Cut / fill volumes', 'Crest and toe set-out'] } }
+  ] },
+
+  { id: 'concrete', label: 'Concrete', pages: [
+    { id: 'footings', label: 'Footings & pedestals', c: { d: 'Pad, strip or pile-cap footings with pedestals for equipment and structures.',
+      p: ['type|Type||Pad/Strip/Pile cap/Raft', 'L|Footing length|mm', 'W|Footing width|mm', 'D|Footing depth|mm', 'pL|Pedestal length|mm', 'pW|Pedestal width|mm', 'pH|Pedestal height|mm', 'tog|Top of grout RL|m', 'grout|Grout thickness|mm', 'bolts|HD bolt group item ID|'],
+      o: ['Concrete volume', 'Formwork area', 'Excavation volume', 'Reinforcement estimate (rate-based placeholder)', 'Plan / section geometry'] } },
+    { id: 'drivein', label: 'Drive-in sumps', c: { d: 'Sump with a vehicle ramp for clean-out by loader or skid steer.',
+      p: ['L|Internal length|m', 'W|Internal width|m', 'D|Depth|m', 'ramp|Ramp grade|1:x', 'rampW|Ramp width|m', 'wall|Wall thickness|mm', 'floor|Floor thickness|mm', 'pump|Pump position||Corner/Wall centre/Frame over sump'],
+      o: ['Sump volume', 'Ramp length and footprint', 'Concrete quantities', 'Pump frame interface'] } },
+    { id: 'floorsumps', label: 'Floor sumps', c: { d: 'Small floor sumps in slabs, with grating.',
+      p: ['L|Internal length|mm', 'W|Internal width|mm', 'D|Depth|mm', 'wall|Wall thickness|mm', 'fall|Floor fall to sump|%', 'grate|Grating||Yes/No', 'load|Grating load class||Pedestrian/Light vehicle/Heavy vehicle'],
+      o: ['Sump volume', 'Grating size and seating angle', 'Floor fall set-out'] } },
+    { id: 'hdbolts', label: 'HD bolt geometry', c: { d: 'Holding-down bolt groups: size, projection, embedment and set-out.',
+      p: ['dia|Bolt diameter|mm', 'grade|Grade||4.6/8.8/Other', 'proj|Projection above TOG|mm', 'emb|Embedment|mm', 'rows|Rows|no.', 'cols|Columns|no.', 'px|Pitch X|mm', 'py|Pitch Y|mm', 'sleeve|Sleeve / cone||None/Sleeve/Cone', 'plate|Anchor plate thickness|mm'],
+      o: ['Bolt length and thread length', 'Bolt set-out table', 'Bolt template drawing', 'Edge distance check (placeholder)'] } }
+  ] },
+
+  { id: 'structural', label: 'Structural', pages: [
+    { id: 'trestles', label: 'Conveyor trestles', c: { d: 'Conveyor support trestles along the conveyor profile.',
+      p: ['bw|Belt width|mm', 'clH|Centreline height|m', 'span|Trestle spacing|m', 'legs|Leg spacing|mm', 'walk|Walkway||None/One side/Both sides', 'sect|Leg section|', 'base|Base plate size|mm'],
+      o: ['Trestle heights along the profile', 'Member lengths', 'Base plate and bolt interface', 'Trestle schedule'] } },
+    { id: 'gantries', label: 'Conveyor gantries', c: { d: 'Truss gantries carrying conveyors over roads and between structures.',
+      p: ['span|Span|m', 'bw|Belt width|mm', 'inc|Incline|deg', 'depth|Truss depth|m', 'walk|Walkway||One side/Both sides', 'cover|Belt cover||None/Half/Full', 'roof|Roof||None/Full', 'supp|Supports||Trestle/Tower/Building'],
+      o: ['Truss geometry and panel points', 'Clearance envelope', 'Support reactions (placeholder)', 'Gantry schedule'] } },
+    { id: 'stairs', label: 'Stair flights & towers', c: { d: 'Stair flights and stair towers between levels.',
+      p: ['rise|Total rise|m', 'riser|Target riser|mm', 'going|Target going|mm', 'angle|Stair angle|deg', 'flW|Flight width|mm', 'maxRise|Max rise per flight|m', 'towL|Tower plan length|m', 'towW|Tower plan width|m', 'levels|Levels|no.'],
+      o: ['Risers and goings per flight', 'Landing levels', 'Stringer lengths', 'Tower plan and elevation', 'Compliance check (to be built)'],
+      r: 'AS 1657 — fixed platforms, walkways, stairways and ladders (confirm current edition and limits before building the check).' } },
+    { id: 'ladders', label: 'Ladders', c: { d: 'Fixed rung ladders with cage and rest platforms.',
+      p: ['h|Climb height|m', 'w|Ladder width|mm', 'rung|Rung spacing|mm', 'cage|Cage||Yes/No', 'rest|Rest platform interval|m', 'exit|Top exit||Straight through/Side step'],
+      o: ['Rung count', 'Cage hoops and verticals', 'Rest platform positions', 'Compliance check (to be built)'],
+      r: 'AS 1657 (confirm current edition).' } },
+    { id: 'stepladders', label: 'Step ladders', c: { d: 'Fixed step-type ladders.',
+      p: ['h|Height|m', 'angle|Angle|deg', 'w|Width|mm', 'tread|Tread depth|mm', 'rails|Handrails||Both sides/One side'],
+      o: ['Tread count and spacing', 'Stringer length', 'Footprint'],
+      r: 'AS 1657 (confirm current edition).' } },
+    { id: 'pumpframe', label: 'Sump pump frame', c: { d: 'Steel frame over a sump carrying a vertical sump pump, with hoist beam and access.',
+      p: ['pump|Pump item ID|', 'span|Frame span|mm', 'depth|Sump depth|m', 'hoist|Hoist beam||Yes/No', 'swl|Hoist SWL|t', 'walk|Walkway width|mm', 'access|Access||Ladder/Stair/Step ladder'],
+      o: ['Frame member layout', 'Pump column and suction set-out', 'Hoist beam clearance', 'Frame schedule'] } },
+    { id: 'gates', label: 'Swing gates & handrails', c: { d: 'Handrail runs and self-closing swing gates. (PDF note said "swing doors handrails" — read as swing gates on handrails; confirm.)',
+      p: ['h|Handrail height|mm', 'post|Post spacing|mm', 'mid|Mid-rail||Yes/No', 'kick|Kickplate height|mm', 'gateW|Gate width|mm', 'gate|Gate type||Self-closing/Manual', 'len|Run length|m'],
+      o: ['Post set-out along the run', 'Gate swing clearance', 'Handrail schedule'],
+      r: 'AS 1657 (confirm current edition).' } }
+  ] },
+
+  { id: 'mechanical', label: 'Mechanical', pages: [
+    { id: 'sumppumps', label: 'Sump pumps', c: { d: 'Vertical cantilever / submersible sump pumps.',
+      p: ['q|Duty flow|m³/h', 'h|Duty head|m', 'sg|SG|-', 'depth|Sump depth|m', 'model|Pump model|', 'kw|Motor|kW', 'col|Column length|mm'],
+      o: ['Column length vs sump depth', 'Pump outline from vendor data', 'Pump / motor datasheet'] } },
+    { id: 'warman', label: 'Warman pumps', c: { d: 'Horizontal centrifugal slurry pumps (Warman or equivalent).',
+      p: ['q|Flow|m³/h', 'tdh|Total dynamic head|m', 'sg|Slurry SG|-', 'cw|Solids|% w/w', 'd50|d50|µm', 'frame|Frame size|', 'drive|Drive||Overhead V-belt/Side V-belt/Direct coupled', 'kw|Motor|kW', 'suc|Suction size|mm', 'dis|Discharge size|mm'],
+      o: ['Pump and baseplate outline', 'Drive arrangement envelope', 'Maintenance clearance', 'Datasheet'] } },
+    { id: 'hoppers', label: 'Pump hoppers', subpages: [
+      { id: 'square', label: 'Square', c: { d: 'Square / rectangular pump hopper with sloped bottom.',
+        p: HOPPER_VOL.concat(['L|Top length|mm', 'W|Top width|mm', 'H|Straight height|mm', 'slope|Bottom slope|deg', 'out|Outlet size|mm', 'fb|Freeboard|mm']),
+        o: ['Geometry and live / total volume', 'Retention check', 'Plate development (flat patterns)', 'Nozzle schedule'] } },
+      { id: 'cylindrical', label: 'Cylindrical', c: { d: 'Cylindrical pump hopper.',
+        p: HOPPER_VOL.concat(['dia|Diameter|mm', 'H|Straight height|mm', 'bottom|Bottom||Flat/Sloped/Dished', 'out|Outlet size|mm', 'fb|Freeboard|mm']),
+        o: ['Geometry and live / total volume', 'Retention check', 'Plate development', 'Nozzle schedule'] } },
+      { id: 'tapered', label: 'Tapered bottom', c: { d: 'Cylindrical hopper with tapered (cone) bottom section.',
+        p: HOPPER_VOL.concat(['dia|Top diameter|mm', 'H|Straight height|mm', 'taper|Taper angle|deg', 'out|Outlet size|mm', 'fb|Freeboard|mm']),
+        o: ['Geometry and live / total volume', 'Retention check', 'Cone development', 'Nozzle schedule'] } },
+      { id: 'conical', label: 'Conical', c: { d: 'Fully conical pump hopper.',
+        p: HOPPER_VOL.concat(['dia|Top diameter|mm', 'cone|Cone angle from horizontal|deg', 'out|Outlet size|mm', 'fb|Freeboard|mm']),
+        o: ['Geometry and live / total volume', 'Retention check', 'Cone development', 'Nozzle schedule'] } }
+    ] },
+    { id: 'tanks', label: 'Tanks', subpages: [
+      { id: 'shell', label: 'Shell & baffles', c: { d: 'Process tank shell, floor and baffles.',
+        p: ['dia|Diameter|mm', 'h|Shell height|mm', 'op|Operating level|mm', 'baf|Baffles|no.', 'bafW|Baffle width|mm', 'floor|Floor||Flat/Coned/Sloped', 'mat|Material||Mild steel/Stainless/HDPE/Concrete'],
+        o: ['Volume (total / operating)', 'Shell course development', 'Baffle set-out', 'Nozzle schedule'] } },
+      { id: 'agitator', label: 'Agitator platform', c: { d: 'Platform over the tank carrying the agitator, with access.',
+        p: ['span|Platform span|mm', 'w|Platform width|mm', 'agKw|Agitator motor|kW', 'agMass|Agitator mass|t', 'access|Access||Stair/Ladder', 'hoist|Hoist||None/Monorail/Davit'],
+        o: ['Platform beam layout', 'Agitator mounting interface', 'Access and handrail'] } },
+      { id: 'hd', label: 'HD geometry', c: { d: 'Tank holding-down bolts on a PCD.',
+        p: ['pcd|Bolt PCD|mm', 'n|No. of bolts|no.', 'dia|Bolt diameter|mm', 'chair|Anchor chairs||Yes/No', 'ring|Base ring width|mm'],
+        o: ['Bolt set-out on PCD', 'Chair detail', 'Foundation interface'] } },
+      { id: 'hatches', label: 'Hatches & manways', c: { d: 'Inspection hatches and manways on shell and roof.',
+        p: ['mw|Manway size|mm', 'mwN|No. of manways|no.', 'hatch|Inspection hatch size|mm', 'hatchN|No. of hatches|no.', 'pos|Positions (deg)|'],
+        o: ['Opening set-out on shell / roof', 'Reinforcing pad (placeholder)'] } },
+      { id: 'roof', label: 'Roof', c: { d: 'Tank roof and roof walkway.',
+        p: ['type|Roof type||None/Flat/Cone/Partial', 'slope|Roof slope|deg', 'walk|Walkway||None/Radial/Full'],
+        o: ['Roof plate geometry', 'Walkway and handrail'] } },
+      { id: 'cleanout', label: 'Clean-out doors', c: { d: 'Tank clean-out doors.',
+        p: ['w|Door width|mm', 'h|Door height|mm', 'n|No. of doors|no.', 'type|Type||Flush/Davit hinged/Bolted'],
+        o: ['Door set-out on shell', 'Davit swing clearance'] } }
+    ] },
+    { id: 'conveyors', label: 'Conveyors', subpages: [
+      { id: 'profile', label: 'Profile & datasheet', c: { d: 'Conveyor profile and datasheet.',
+        p: ['tph|Design capacity|t/h', 'bd|Bulk density|t/m³', 'bw|Belt width|mm', 'v|Belt speed|m/s', 'trough|Troughing angle|deg', 'tail|Tail pulley RL|m', 'head|Head pulley RL|m', 'len|Horizontal length|m', 'lump|Max lump|mm'],
+        o: ['Incline angle and lift', 'Belt profile (vertical curves later)', 'Datasheet', 'Power estimate (to be built)'],
+        r: 'Design method (e.g. CEMA or ISO 5048) and guarding standard (AS 1755) to confirm before calcs are built.' } },
+      { id: 'headchute', label: 'Head chute', c: { d: 'Head (transfer) chute geometry.',
+        p: ['bw|Belt width|mm', 'v|Belt speed|m/s', 'hd|Head pulley dia|mm', 'drop|Drop height|mm', 'rec|Receiving||Conveyor/Bin/Screen/Stockpile', 'liner|Liner||Ceramic/Rubber/Wear plate', 'scr|Belt scrapers|no.'],
+        o: ['Material trajectory', 'Chute geometry', 'Scraper positions'] } },
+      { id: 'headframe', label: 'Head frame', c: { d: 'Head pulley frame.',
+        p: ['bw|Belt width|mm', 'hd|Head pulley dia|mm', 'side|Drive side||Left/Right', 'ht|Head height|mm'],
+        o: ['Frame geometry', 'Bearing / base set-out'] } },
+      { id: 'tailframe', label: 'Tail frame', c: { d: 'Tail pulley frame and loading zone.',
+        p: ['bw|Belt width|mm', 'td|Tail pulley dia|mm', 'load|Loading length|m', 'skirt|Skirt length|m'],
+        o: ['Frame geometry', 'Loading zone and impact idlers'] } },
+      { id: 'takeup', label: 'Gravity take-up', c: { d: 'Gravity take-up tower / horizontal take-up.',
+        p: ['travel|Take-up travel|mm', 'mass|Counterweight mass|t', 'type|Type||Vertical (GTU)/Horizontal'],
+        o: ['Tower geometry', 'Counterweight box size', 'Bend and take-up pulley set-out'] } },
+      { id: 'drive', label: 'Drive geometry', c: { d: 'Conveyor drive arrangement.',
+        p: ['kw|Installed power|kW', 'type|Drive type||Shaft-mounted/Base-mounted/Dual', 'side|Drive side||Left/Right'],
+        o: ['Drive envelope', 'Baseplate / torque arm set-out', 'Maintenance clearance'] } },
+      { id: 'pulleys', label: 'Pulleys & drive', c: { d: 'Pulley schedule linked to the drive.',
+        p: ['dia|Pulley diameter|mm', 'face|Face width|mm', 'shaft|Shaft dia at bearing|mm', 'lag|Lagging||Plain/Rubber/Ceramic'],
+        o: ['Pulley schedule', 'Bearing centres'] } }
+    ] },
+    { id: 'thickeners', label: 'Thickeners & underflow pumps', c: { d: 'Thickener tank, feedwell, bridge and underflow pumps.',
+      p: ['dia|Diameter|m', 'side|Sidewall height|m', 'slope|Floor slope|deg', 'fw|Feedwell dia|m', 'type|Type||High-rate/Paste/Conventional', 'bridge|Support||Bridge/Column', 'uf|Underflow pumps|no.', 'ufq|Underflow flow|m³/h'],
+      o: ['Tank and floor geometry', 'Underflow pump arrangement', 'Overflow launder', 'Access bridge'] } },
+    { id: 'reagents', label: 'Reagent mix & storage', c: { d: 'Reagent make-up and storage tanks (dangerous goods) with options.',
+      p: ['reag|Reagent||Cyanide/Lime/Caustic/Flocculant/Other', 'dg|DG class|', 'store|Storage volume|m³', 'mix|Mix tank volume|m³', 'tanks|No. of tanks|no.', 'bund|Bund capacity|% of largest', 'opt|Option||A/B/C'],
+      o: ['Tank layout and bund geometry', 'Bund volume check', 'Separation distances (to be built)', 'Option comparison'],
+      r: 'Bund and separation rules depend on the substance and site — e.g. AS 1940 (flammable), AS 3780 (corrosive) and the client\'s DG rules. Confirm before building checks.' } }
+  ] },
+
+  { id: 'process', label: 'Process Equipment', pages: [
+    { id: 'launders', label: 'Gravity launders', c: { d: 'Gravity slurry launders.',
+      p: ['q|Flow|m³/h', 'sg|SG|-', 'slope|Slope|%', 'w|Width|mm', 'd|Depth|mm', 'len|Length|m', 'liner|Liner||None/Rubber/HDPE'],
+      o: ['Flow depth and velocity (to be built)', 'Launder section', 'Support set-out'] } },
+    { id: 'flotation', label: 'Flotation cells', c: { d: 'Flotation cell banks.',
+      p: ['vol|Cell volume|m³', 'n|No. of cells|no.', 'type|Type||Tank/Trough', 'step|Step between cells|mm', 'laund|Froth launder||Internal/External/Both'],
+      o: ['Bank layout', 'Launder arrangement', 'Platforms and access'] } },
+    { id: 'grinding', label: 'Grinding & milling', subpages: [
+      { id: 'sag', label: 'SAG mill', c: { d: 'SAG mill envelope and interfaces.',
+        p: ['dia|Diameter inside shell|m', 'egl|Effective grinding length|m', 'kw|Installed power|kW', 'drive|Drive||Girth gear/Gearless (ring motor)', 'dis|Discharge||Trommel/Discharge screen', 'liner|Liner handler||Yes/No'],
+        o: ['Mill envelope and centreline', 'Foundation footprint', 'Reline clearance', 'Feed chute / discharge interface'] } },
+      { id: 'ball', label: 'Ball mill', c: { d: 'Ball mill envelope and interfaces.',
+        p: ['dia|Diameter inside shell|m', 'egl|Effective grinding length|m', 'kw|Installed power|kW', 'drive|Drive||Girth gear/Gearless (ring motor)', 'dis|Discharge||Trommel/Overflow', 'liner|Liner handler||Yes/No'],
+        o: ['Mill envelope and centreline', 'Foundation footprint', 'Reline clearance', 'Feed / discharge interface'] } }
+    ] },
+    { id: 'classification', label: 'Classification', subpages: [
+      { id: 'cyclones', label: 'Cyclones', c: { d: 'Hydrocyclone clusters.',
+        p: ['dia|Cyclone diameter|mm', 'op|Operating|no.', 'sb|Standby|no.', 'p|Feed pressure|kPa', 'cluster|Cluster||Radial/Linear', 'of|Overflow launder||Yes/No'],
+        o: ['Cluster geometry', 'Feed distributor', 'Launders and support'] } }
+    ] },
+    { id: 'wetscreen', label: 'Wet screens', subpages: [
+      { id: 'feedbox', label: 'Feedbox', c: { d: 'Wet screen feedbox.',
+        p: ['w|Screen width|mm', 'q|Feed flow|m³/h', 'spray|Spray bars|no.', 'drop|Drop height|mm'],
+        o: ['Feedbox geometry', 'Feed distribution'] } },
+      { id: 'oversize', label: 'Oversize chute', c: { d: 'Wet screen oversize chute.',
+        p: ['w|Screen width|mm', 'tph|Oversize|t/h', 'dest|Destination||Conveyor/Bunker/Return to mill', 'liner|Liner||Rubber/Ceramic/Wear plate'],
+        o: ['Oversize chute geometry', 'Discharge trajectory'] } }
+    ] },
+    { id: 'rom', label: 'ROM bin', subpages: [
+      { id: 'bin', label: 'ROM bin', c: { d: 'Run-of-mine dump bin.',
+        p: ['cap|Live capacity|t', 'bd|Bulk density|t/m³', 'truck|Design truck|', 'wall|Wall slope|deg', 'topL|Top opening length|m', 'topW|Top opening width|m', 'out|Outlet size|mm'],
+        o: ['Bin geometry and live capacity', 'Truck tipping envelope', 'Wear liner zones'] } },
+      { id: 'grizzly', label: 'Static grizzly', c: { d: 'Static grizzly over the ROM bin.',
+        p: ['ap|Aperture|mm', 'bar|Bar spacing|mm', 'ang|Inclination|deg', 'L|Length|m', 'W|Width|m'],
+        o: ['Grizzly bar layout', 'Rock-breaker reach check (to be built)'] } },
+      { id: 'hungry', label: 'Hungry boards', c: { d: 'Hungry boards around the bin top.',
+        p: ['h|Height|mm', 'len|Total length|m', 'side|Sides||3 sides/2 sides/1 side'],
+        o: ['Board layout', 'Support posts'] } }
+    ] },
+    { id: 'milldis', label: 'Mill discharge hopper', c: { d: 'Mill discharge hopper and pump suction.',
+      p: ['q|Flow|m³/h', 'vol|Live volume|m³', 'ret|Retention|s', 'L|Length|mm', 'W|Width|mm', 'H|Height|mm', 'pumps|Pumps||Duty/Duty + standby'],
+      o: ['Hopper geometry', 'Pump suction interface', 'Overflow'] } }
+  ] },
+
+  { id: 'multi', label: 'Multi-discipline', pages: [
+    { id: 'sumpassy', label: 'Sump, pump & frame', c: { d: 'Assembly of a sump (Concrete), sump pump (Mechanical) and pump frame (Structural). Enter the item IDs from those registers.',
+      p: ['sump|Sump item ID|', 'pump|Pump item ID|', 'frame|Frame item ID|'],
+      o: ['Combined arrangement', 'Interface check (pump column vs sump depth; frame vs sump plan)', 'Assembly datasheet'] } },
+    { id: 'romassy', label: 'ROM bin, grizzly & hungry board', c: { d: 'Assembly of the ROM bin, static grizzly and hungry boards.',
+      p: ['bin|ROM bin item ID|', 'griz|Grizzly item ID|', 'hb|Hungry board item ID|'],
+      o: ['Combined arrangement', 'Interface check', 'Assembly datasheet'] } }
+  ] },
+
+  { id: 'piping', label: 'Piping', pages: [
+    { id: 'suction', label: 'Pump suction', c: { d: 'Pump suction arrangement.',
+      p: ['dn|Pipe size|DN', 'len|Length|m', 'bends|Bends|no.', 'valve|Isolation valve||Knife gate/Pinch/Butterfly', 'red|Eccentric reducer||Yes/No', 'npsha|NPSH available|m'],
+      o: ['Suction arrangement', 'Fittings list', 'NPSH check (to be built)'] } },
+    { id: 'hydrants', label: 'Hydrants', c: { d: 'Fire hydrant ring main and hydrant set-out.',
+      p: ['spacing|Max hydrant spacing|m', 'q|Flow|L/s', 'p|Pressure|kPa', 'dn|Ring main size|DN', 'cover|Coverage radius|m'],
+      o: ['Hydrant set-out', 'Coverage check', 'Ring main length'],
+      r: 'AS 2419.1 (fire hydrant installations) — confirm applicability and edition.' } },
+    { id: 'sharkfin', label: 'Sharkfin samplers library', c: { d: 'Library of sharkfin (in-line) sampler models.',
+      p: ['model|Model|', 'dn|Pipe size|DN', 'cut|Cutter width|mm', 'vendor|Vendor|', 'ref|Drawing reference|'],
+      o: ['Sampler block library', 'Insertion geometry'] } }
+  ] },
+
+  { id: 'electrical', label: 'Electrical', pages: [
+    { id: 'switchroom', label: 'Switchroom', c: { d: 'Switchroom building / transportable.',
+      p: ['L|Length|m', 'W|Width|m', 'H|Height|m', 'type|Type||Transportable/Fixed', 'floor|Raised floor|mm', 'panels|Panels|no.', 'entry|Cable entry||Bottom/Top'],
+      o: ['Room layout', 'Panel line-up', 'Access and egress clearances'] } },
+    { id: 'transformers', label: 'Transformers', c: { d: 'Transformers with plinth and bund.',
+      p: ['kva|Rating|kVA', 'pri|Primary|kV', 'sec|Secondary|V', 'type|Type||Oil/Dry', 'bund|Bund||Yes/No'],
+      o: ['Plinth and bund geometry', 'Clearances'] } },
+    { id: 'cabletray', label: 'Cable tray', subpages: [
+      { id: 'blocks', label: 'Block library', c: { d: 'Cable tray block library.',
+        p: ['type|Tray type||Ladder/Perforated/Solid', 'w|Width|mm', 'd|Depth|mm', 'fit|Fitting||Straight/Bend 90/Bend 45/Tee/Riser'],
+        o: ['Block set (2D / 3D)', 'Block naming standard'] } },
+      { id: 'script', label: 'AutoCAD script', c: { d: 'Generate cable tray runs in AutoCAD from a route.',
+        p: ['w|Tray width|mm', 'tiers|Tiers|no.', 'gap|Tier spacing|mm', 'el|Elevation|m', 'route|Route points (x,y; x,y …)|'],
+        o: ['Length and fittings take-off', 'Tray schedule'],
+        x: ['Item register — CSV (available now)', 'AutoCAD script (.scr) — runs in any AutoCAD, no add-ins', 'Python (pyautocad) — needs Windows + AutoCAD + Python', 'AutoLISP (.lsp) — alternative'],
+        r: 'Recommended route: .scr generated in this page (works anywhere). Python via pyautocad is an alternative but needs a Windows PC with AutoCAD (not LT) running.' } }
+    ] },
+    { id: 'lights', label: 'Lights', c: { d: 'Area lighting set-out.',
+      p: ['area|Area||Process/Walkway/Yard/Building', 'lux|Target illuminance|lux', 'mh|Mounting height|m', 'fit|Fitting|', 'sp|Spacing|m'],
+      o: ['Light set-out', 'Lux check (to be built)'],
+      r: 'AS/NZS 1680 series (interior lighting) — confirm part and edition.' } },
+    { id: 'panels', label: 'Control panels', c: { d: 'Control panel outlines and clearance zones.',
+      p: ['w|Width|mm', 'h|Height|mm', 'd|Depth|mm', 'ip|IP rating|', 'mount|Mounting||Wall/Floor/Stand'],
+      o: ['Panel outline', 'Clearance zone'] } },
+    { id: 'lp', label: 'Light & power reticulation', c: { d: 'Small power and lighting reticulation.',
+      p: ['db|Distribution boards|no.', 'circ|Circuits|no.', 'gpo|GPO outlets|no.', 'route|Route||Tray/Conduit/Direct buried'],
+      o: ['Reticulation layout', 'Cable schedule (to be built)'] } },
+    { id: 'bess', label: 'BESS farm', c: { d: 'Battery energy storage system array.',
+      p: ['mwh|Energy|MWh', 'mw|Power|MW', 'unit|Unit size|MWh', 'n|Units|no.', 'sp|Unit spacing|m', 'pcs|Inverters (PCS)|no.'],
+      o: ['Array layout', 'Separation / fire spacing (to be built)', 'Footprint'] } }
+  ] },
+
+  { id: 'layout', label: 'Layout', pages: [
+    { id: 'dry', label: 'Dry plant', c: { area: true, d: 'Dry plant — crushing and screening area layout.', p: AREA_P.concat(['stages|Crushing stages|no.']), o: AREA_O } },
+    { id: 'stockpile', label: 'Stockpile & reclaim', c: { area: true, d: 'Stockpile and reclaim area layout.', p: AREA_P.concat(['live|Live capacity|t']), o: AREA_O } },
+    { id: 'grinding', label: 'Grinding', c: { area: true, d: 'Grinding area layout.', p: AREA_P.concat(['circuit|Circuit||SAG/SABC/Ball only/HPGR + ball']), o: AREA_O } },
+    { id: 'conveyors', label: 'Conveyors', c: { area: true, d: 'Overall conveyor routing.', p: AREA_P.concat(['n|No. of conveyors|no.']), o: AREA_O } },
+    { id: 'cil', label: 'CIL', c: { area: true, d: 'Carbon-in-leach tank train layout.', p: AREA_P.concat(['tanks|No. of tanks|no.', 'dia|Tank diameter|m']), o: AREA_O } },
+    { id: 'thickeners', label: 'Thickeners', c: { area: true, d: 'Thickener area layout.', p: AREA_P.concat(['n|No. of thickeners|no.']), o: AREA_O } },
+    { id: 'reagents', label: 'Reagents', c: { area: true, d: 'Reagent area layout (DG separation applies).', p: AREA_P.concat(['n|No. of reagents|no.']), o: AREA_O } },
+    { id: 'camp', label: 'Camp sizing', c: { area: true, d: 'Accommodation camp — calculate size from workforce.',
+      p: ['peak|Peak workforce|people', 'roster|Roster||2:1/8:6/14:7/Other', 'rooms|Rooms per block|no.', 'ens|Ensuite||Yes/No', 'mess|Messing||Full/Partial', 'spare|Allowance|%'],
+      o: ['Rooms required', 'Accommodation blocks', 'Wet mess / recreation / laundry areas', 'Camp footprint'] } },
+    { id: 'assets', label: 'Asset library', c: { d: 'Vendor drawings, catalogues and existing project drawings / models available as assets. v1 stores references only (path or URL), not the files.',
+      p: ['type|Asset type||Vendor drawing/Catalogue/Existing project drawing/3D model/Block', 'disc|Discipline||Earthworks/Concrete/Structural/Mechanical/Process/Piping/Electrical/Layout', 'comp|Component|', 'vendor|Vendor / source|', 'file|File reference (path or URL)|', 'rev|Revision|'],
+      o: ['Link assets to component pages', 'Preview (needs file storage)'], x: ['Item register — CSV (available now)'] } }
+  ] },
+
+  { id: 'study', label: 'Study Model', pages: [
+    { id: 'options', label: 'Options register', fn: 'options', subpages: [
+      { id: 'all', label: 'All options' }, { id: 'proposed', label: 'Proposed' }, { id: 'selected', label: 'Selected' }, { id: 'rejected', label: 'Rejected' }
+    ] },
+    { id: 'review', label: 'Review & decide', fn: 'review' },
+    { id: 'iterate', label: 'Iterate', fn: 'iterate' }
+  ] }
+];
+
+// Sections → pages → optional sub-pages (built from DEF)
+const NAV = DEF.map((s) => ({ id: s.id, label: s.label, pages: s.pages.map((p) => {
+  const o = { id: p.id, label: p.label };
+  if (p.subpages) o.subpages = p.subpages.map((sp) => ({ id: sp.id, label: sp.label }));
+  return o;
+}) }));
+
+// Right half of the header
+const HEADER_RIGHT = [
+  { type: 'pill', id: 'hdrProj', text: '—', title: 'Current project (working copy)' },
+  { type: 'pill', id: 'hdrCount', text: '0 items · 0 opts', title: 'Items across all registers · study options' },
+  { type: 'sep' },
+  { type: 'button', id: 'hdrNew', label: 'New', style: 'ghost', title: 'Start a new blank project', onClick: () => newProjectClick() },
+  { type: 'button', id: 'hdrOpen', label: 'Open', style: 'ghost', title: 'Open a CADTools project JSON file', onClick: () => openFile() },
+  { type: 'button', id: 'hdrExport', label: 'Export', style: 'steel', title: 'Download the project as a versioned JSON file', onClick: () => exportProject() },
+  { type: 'button', id: 'hdrSave', label: 'Save', style: 'amber', title: 'Save to the project library in this browser (bumps the revision)', onClick: () => saveProject() }
+];
+
+/* ---------- leaves, field parsing and PAGES ---------- */
+function parseF(s) { const a = s.split('|'); return { k: a[0], l: a[1], u: a[2] || '', opt: a[3] ? a[3].split('/') : null, num: !!a[2] && a[2] !== '-' && !a[3] || a[2] === '-' }; }
+const LEAVES = [];
+DEF.forEach((s) => s.pages.forEach((p) => {
+  if (p.subpages) p.subpages.forEach((sp) => LEAVES.push({ s: s, p: p, sp: sp, path: s.id + '/' + p.id + '/' + sp.id, c: sp.c, fn: sp.fn || p.fn }));
+  else LEAVES.push({ s: s, p: p, sp: null, path: s.id + '/' + p.id, c: p.c, fn: p.fn });
+}));
+LEAVES.forEach((L) => { if (L.c) { L.c.fields = L.c.p.map(parseF); L.tag = (L.sp ? L.p.id.slice(0, 3) + '-' + L.sp.id.slice(0, 3) : L.p.id.slice(0, 4)).toUpperCase(); } });
+const AREAS = ['Whole plant'].concat(LEAVES.filter((L) => L.c && L.c.area).map((L) => L.p.label));
+
+const SPECIAL = { overview: renderOverview, info: renderInfo, saved: renderSaved, settings: renderSettings, options: renderOptions, review: renderReview, iterate: renderIterate };
+const PAGES = {};
+LEAVES.forEach((L) => {
+  const fn = L.fn ? SPECIAL[L.fn] : (ctx) => renderComponent(ctx, L);
+  PAGES[L.path] = (ctx) => { refreshHeader(); fn(ctx); };
+});
+
+/* ---------- project data (working copy in this browser; library of saved projects) ---------- */
+let PROJ = null;
+let DIRTY = null;
+let PENDING_AREA = null;
+let LAST_AREA = null;
+let REVIEW_AREA = 'All areas';
+const ARM = {};
+
+function today() { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function nowStr() { const d = new Date(); return today() + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function blankProject() { return { app: 'CADTools', schema: 1, id: 'P' + Date.now().toString(36), no: '', name: 'Untitled project', client: '', site: '', coord: '', units: 'Metric (mm / m)', desc: '', created: today(), saved: '', rev: 0, items: {}, options: [] }; }
+function proj() { if (!PROJ) { PROJ = LS.get('current', null) || blankProject(); DIRTY = LS.get('dirty', false); } return PROJ; }
+function library() { return LS.get('library', {}); }
+function touch() { DIRTY = true; LS.set('current', PROJ); LS.set('dirty', true); refreshHeader(); }
+function projItems(path) { const p = proj(); return p.items[path] || (p.items[path] = []); }
+function itemCount() { const p = proj(); return Object.keys(p.items).reduce((n, k) => n + p.items[k].length, 0); }
+function slug(s) { return String(s || 'project').trim().replace(/[^A-Za-z0-9-]+/g, '_').replace(/^_+|_+$/g, '') || 'project'; }
+function armed(key, msg) { const t = Date.now(); if (ARM[key] && t - ARM[key] < 4000) { delete ARM[key]; return true; } ARM[key] = t; toast(msg); return false; }
+
+function refreshHeader() {
+  const p = proj();
+  const nm = p.no || p.name, short = nm.length > 22 ? nm.slice(0, 21) + '…' : nm;
+  setHeaderText('hdrProj', short + ' · rev ' + (p.rev || 0) + (DIRTY ? ' · unsaved' : ''), !!DIRTY);
+  const hp = document.getElementById('hdrProj'); if (hp) hp.title = (p.no ? p.no + ' · ' : '') + p.name + (DIRTY ? ' — unsaved changes' : '');
+  setHeaderText('hdrCount', itemCount() + ' items · ' + p.options.length + ' opts');
+}
+
+function saveProject() {
+  const p = proj();
+  p.rev = (p.rev || 0) + 1; p.saved = nowStr();
+  const lib = library(); lib[p.id] = clone(p); LS.set('library', lib);
+  LS.set('current', p); DIRTY = false; LS.set('dirty', false);
+  refreshHeader(); toast('Saved "' + p.name + '" as rev ' + p.rev + ' in this browser. Use Export for a file copy.');
+}
+function newProjectClick() {
+  if (DIRTY && !armed('new', 'Unsaved changes — click New again within 4 s to discard them.')) return;
+  PROJ = blankProject(); LS.set('current', PROJ); DIRTY = false; LS.set('dirty', false);
+  toast('New blank project started.'); go('project', 'info');
+}
+function download(name, text, type) {
+  try {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: type })); a.download = name;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800); toast('Downloaded ' + name);
+  } catch (e) { toast('Download blocked here: ' + e.message); }
+}
+function exportProject() {
+  const p = proj();
+  download('CADTools_' + slug(p.no || p.name) + '_v' + (p.rev || 0) + '.json', JSON.stringify(p, null, 2), 'application/json');
+  if (DIRTY) setTimeout(() => toast('Exported with unsaved changes — the file name uses the last saved rev (' + (p.rev || 0) + ').'), 2700);
+}
+function openFile() {
+  if (DIRTY && !armed('open', 'Unsaved changes — click Open again within 4 s to discard them.')) return;
+  const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const d = JSON.parse(rd.result);
+        if (d.app !== 'CADTools' || !d.items || !d.options) throw new Error('not a CADTools project file');
+        PROJ = d; LS.set('current', PROJ); DIRTY = true; LS.set('dirty', true);
+        toast('Opened ' + f.name + '. Save to add it to this browser\'s library.'); go('project', 'overview');
+      } catch (e) { toast('Could not open ' + f.name + ': ' + e.message); }
+    };
+    rd.readAsText(f);
+  };
+  inp.click();
+}
+
+/* ---------- shared UI bits (inline styles: the template has no form component yet) ---------- */
+const S_LBL = 'display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:3px';
+const S_UNIT = 'font-family:"IBM Plex Mono",monospace;font-weight:500;color:var(--ink-faint)';
+const S_INP = 'width:100%;box-sizing:border-box;padding:5px 7px;border:1px solid var(--line);border-radius:3px;font:inherit;font-size:13px;background:#fff;color:var(--ink)';
+const S_GRID = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px 12px';
+const S_LIST = 'margin:6px 0 0;padding-left:18px;font-size:13px;line-height:1.55;color:var(--ink-soft)';
+
+function kpi(l, v, s) { return '<div class="kpi"><div class="lbl">' + esc(l) + '</div><div class="val">' + esc(v) + '</div><div class="sub">' + esc(s) + '</div></div>'; }
+function fieldHtml(id, f, val) {
+  const lab = '<label style="' + S_LBL + '" for="' + id + '">' + esc(f.l) + (f.u && f.u !== '-' ? ' <span style="' + S_UNIT + '">' + esc(f.u) + '</span>' : '') + '</label>';
+  const v = val == null ? '' : String(val);
+  const inp = f.opt
+    ? '<select id="' + id + '" style="' + S_INP + '"><option value=""></option>' + f.opt.map((o) => '<option' + (o === v ? ' selected' : '') + '>' + esc(o) + '</option>').join('') + '</select>'
+    : (f.area ? '<textarea id="' + id + '" rows="3" style="' + S_INP + ';resize:vertical">' + esc(v) + '</textarea>'
+      : '<input id="' + id + '" style="' + S_INP + '"' + (f.num ? ' inputmode="decimal"' : '') + ' value="' + esc(v) + '">');
+  return '<div' + (f.wide ? ' style="grid-column:1/-1"' : '') + '>' + lab + inp + '</div>';
+}
+function readVal(el, f) { const s = el.value.trim(); if (f.num && s !== '' && isFinite(Number(s))) return Number(s); return s; }
+const dash = (v) => (v == null || v === '' ? '—' : String(v));
+function statusChip(s) { const m = { Proposed: 'st-info', Selected: 'st-ok', Rejected: 'st-bad', Superseded: 'st-na' }; return '<span class="st ' + (m[s] || 'st-na') + '">' + esc(s) + '</span>'; }
+function toCSV(cols, rows) {
+  const q = (v) => { const s = v == null ? '' : String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  return [cols.map((c) => q(c.label)).join(',')].concat(rows.map((r) => cols.map((c) => q(r[c.key])).join(','))).join('\r\n');
+}
+
+/* ---------- component page (every Earthworks … Layout page) ---------- */
+function renderComponent(ctx, L) {
+  const c = L.c, items = projItems(L.path), F = c.fields;
+  const nextId = () => { let n = items.length + 1, id; do { id = L.tag + '-' + String(n++).padStart(3, '0'); } while (items.some((i) => i.id === id)); return id; };
+  const regCols = [{ key: 'id', label: 'Item', width: 110, hideable: false }, { key: 'desc', label: 'Description', width: 190 }]
+    .concat(F.map((f) => ({ key: 'v_' + f.k, label: f.l + (f.u && f.u !== '-' ? ' (' + f.u + ')' : ''), width: Math.max(96, Math.min(170, 30 + f.l.length * 7)), type: f.num ? 'num' : 'text', format: dash })))
+    .concat([{ key: 'updated', label: 'Updated', width: 130 }]);
+  const regRows = () => items.map((it) => { const r = { id: it.id, desc: it.desc, updated: it.updated }; F.forEach((f) => { r['v_' + f.k] = it.values[f.k]; }); return r; });
+
+  ctx.setActions('<button class="btn btn-sm" data-cad="csv">Export register CSV</button>');
+  const outs = (c.o || []).map((o) => '<li>' + esc(o) + ' <span class="st st-wait" style="margin-left:4px">Planned</span></li>').join('');
+  const exps = (c.x || X_STD).map((x, i) => '<li>' + esc(x) + (i === 0 ? ' <span class="st st-ok" style="margin-left:4px">Ready</span>' : ' <span class="st st-wait" style="margin-left:4px">Planned</span>') + '</li>').join('');
+  ctx.el.innerHTML =
+    '<div class="banner info" style="margin-bottom:12px">' + esc(c.d) + ' <b>v1 is structure only:</b> the inputs below are a proposed set for review — no calculations or CAD output yet.</div>' +
+    '<div class="two-col">' +
+      '<div class="card"><h4>Inputs</h4>' +
+        '<div style="' + S_GRID + ';margin:8px 0 10px">' +
+          '<div><label style="' + S_LBL + '" for="itemSel">Item</label><select id="itemSel" style="' + S_INP + '"><option value="">— new item —</option>' + items.map((i) => '<option value="' + esc(i.id) + '">' + esc(i.id + (i.desc ? ' · ' + i.desc : '')) + '</option>').join('') + '</select></div>' +
+          '<div><label style="' + S_LBL + '" for="f__id">Item ID</label><input id="f__id" style="' + S_INP + '" value="' + esc(nextId()) + '"></div>' +
+          '<div style="grid-column:span 2"><label style="' + S_LBL + '" for="f__desc">Description</label><input id="f__desc" style="' + S_INP + '" placeholder="e.g. location, area, purpose"></div>' +
+        '</div>' +
+        '<div style="' + S_GRID + '">' + F.map((f) => fieldHtml('f_' + f.k, f, '')).join('') + '</div>' +
+        '<div class="row" style="margin-top:12px"><button class="btn btn-amber btn-sm" id="itemSave">Add item</button><button class="btn btn-sm" id="itemClear">Clear form</button><button class="btn btn-sm" id="itemDel" disabled>Delete item</button></div>' +
+      '</div>' +
+      '<div class="card"><h4>Outputs</h4><ul style="' + S_LIST + '">' + outs + '</ul>' +
+        '<h4 style="margin-top:14px">Exports</h4><ul style="' + S_LIST + '">' + exps + '</ul>' +
+        (c.r ? '<h4 style="margin-top:14px">References &amp; notes</h4><p style="font-size:13px;color:var(--ink-soft)">' + esc(c.r) + '</p>' : '') +
+      '</div>' +
+    '</div>' +
+    '<div id="reg" style="margin-top:14px"></div>' +
+    (c.area ? '<div style="margin-top:14px">' + sectionBlock('areaopt-' + L.p.id, 'Study options for this area', 'From the Study Model', '<div class="row" style="margin-bottom:8px"><button class="btn btn-steel btn-sm" id="newAreaOpt">New option for ' + esc(L.p.label) + '</button></div><div id="areaOpts"></div>') + '</div>' : '');
+
+  DPTable({ id: 'reg-' + L.path.replace(/\//g, '-'), mount: ctx.el.querySelector('#reg'), title: 'Item register — ' + (L.sp ? L.p.label + ' › ' + L.sp.label : L.p.label), columns: regCols, rows: regRows(), defaultSort: { key: 'id', dir: 'asc' }, totals: false });
+  if (c.area) {
+    const p = proj();
+    DPTable({ id: 'areaopts', mount: ctx.el.querySelector('#areaOpts'), title: 'Options', columns: OPT_COLS, rows: p.options.filter((o) => o.area === L.p.label), defaultSort: { key: 'id', dir: 'asc' }, totals: false });
+    ctx.el.querySelector('#newAreaOpt').onclick = () => { PENDING_AREA = L.p.label; go('study', 'options', 'all'); };
+  }
+
+  const el = ctx.el, sel = el.querySelector('#itemSel'), bSave = el.querySelector('#itemSave'), bDel = el.querySelector('#itemDel');
+  const setForm = (it) => {
+    el.querySelector('#f__id').value = it ? it.id : nextId();
+    el.querySelector('#f__desc').value = it ? it.desc : '';
+    F.forEach((f) => { el.querySelector('#f_' + f.k).value = it && it.values[f.k] != null ? it.values[f.k] : ''; });
+    bSave.textContent = it ? 'Update item' : 'Add item'; bDel.disabled = !it;
+  };
+  sel.onchange = () => setForm(items.find((i) => i.id === sel.value) || null);
+  el.querySelector('#itemClear').onclick = () => { sel.value = ''; setForm(null); };
+  bSave.onclick = () => {
+    const id = el.querySelector('#f__id').value.trim();
+    if (!id) { toast('Give the item an ID.'); return; }
+    const editing = sel.value;
+    if (items.some((i) => i.id === id && i.id !== editing)) { toast('Item ID ' + id + ' already exists in this register.'); return; }
+    const values = {}; F.forEach((f) => { values[f.k] = readVal(el.querySelector('#f_' + f.k), f); });
+    const rec = { id: id, desc: el.querySelector('#f__desc').value.trim(), values: values, updated: nowStr() };
+    const ix = items.findIndex((i) => i.id === editing);
+    if (ix >= 0) items[ix] = rec; else items.push(rec);
+    touch(); toast((ix >= 0 ? 'Updated ' : 'Added ') + id); renderContent();
+  };
+  bDel.onclick = () => {
+    const id = sel.value; if (!id) return;
+    if (!armed('del-' + L.path + id, 'Click Delete item again within 4 s to delete ' + id + '.')) return;
+    items.splice(items.findIndex((i) => i.id === id), 1); touch(); toast('Deleted ' + id); renderContent();
+  };
+  const csvBtn = document.querySelector('[data-cad="csv"]');
+  if (csvBtn) csvBtn.onclick = () => {
+    if (!items.length) { toast('The register is empty.'); return; }
+    const p = proj(); download('CADTools_' + slug(p.no || p.name) + '_' + L.tag + '_register_v' + (p.rev || 0) + '.csv', toCSV(regCols, regRows()), 'text/csv');
+  };
+}
+
+/* ---------- Project pages ---------- */
+function renderOverview(ctx) {
+  const p = proj(), comps = LEAVES.filter((L) => L.c);
+  const sel = p.options.filter((o) => o.status === 'Selected').length, rej = p.options.filter((o) => o.status === 'Rejected').length;
+  ctx.setActions('<button class="btn btn-navy btn-sm" data-act="toggle-all-sections">Collapse all</button>');
+  ctx.el.innerHTML =
+    '<div class="kpis">' + kpi('Component pages', String(comps.length), 'Across ' + (DEF.length - 2) + ' disciplines') + kpi('Items in project', String(itemCount()), 'All registers') +
+      kpi('Study options', String(p.options.length), sel + ' selected · ' + rej + ' rejected') + kpi('Project revision', p.rev ? 'rev ' + p.rev : 'Not saved', p.saved || (DIRTY ? 'Unsaved changes' : '—')) + '</div>' +
+    sectionBlock('ovStart', 'How CADTools v1 works', 'Structure release',
+      '<div class="card"><ol class="steps">' +
+        '<li>Set up the job in <b>Project › Project info</b>. The working copy is kept in this browser as you go.</li>' +
+        '<li>On each component page, enter inputs and <b>Add item</b> — each culvert, footing, conveyor etc. becomes a row in that page\'s item register.</li>' +
+        '<li>Use <b>Layout</b> pages for area inputs, then the <b>Study Model</b> to log layout options, select one or more, reject with reasons, and iterate.</li>' +
+        '<li><b>Save</b> stores a revision in this browser\'s library; <b>Export</b> downloads <code>CADTools_&lt;job&gt;_vN.json</code> for the project folder / GitHub. <b>Saved projects</b> duplicates a job for reuse.</li>' +
+        '<li>v1 builds the structure only — calculations, drawings and CAD scripts arrive component by component in later versions.</li>' +
+      '</ol></div>') +
+    '<div style="margin-top:14px">' + sectionBlock('ovCat', 'Component catalogue', 'Every component page and its build status', '<div id="cat"></div>') + '</div>';
+  DPTable({ id: 'catalogue', mount: ctx.el.querySelector('#cat'), title: 'Components', defaultSort: null, totals: true,
+    columns: [
+      { key: 'sec', label: 'Section', width: 140 }, { key: 'page', label: 'Page', width: 200, hideable: false }, { key: 'sub', label: 'Sub-page', width: 170, format: dash },
+      { key: 'inputs', label: 'Inputs', type: 'num', width: 80, total: 'sum' }, { key: 'outputs', label: 'Outputs', type: 'num', width: 86, total: 'sum' },
+      { key: 'items', label: 'Items', type: 'num', width: 76, total: 'sum' }, { key: 'status', label: 'Status', width: 130, align: 'center' }
+    ],
+    rows: comps.map((L) => ({ sec: L.s.label, page: L.p.label, sub: L.sp ? L.sp.label : '', inputs: L.c.fields.length, outputs: (L.c.o || []).length, items: (p.items[L.path] || []).length, status: 'Structure only' })) });
+}
+
+const INFO_F = [
+  { k: 'no', l: 'Project number', u: '' }, { k: 'name', l: 'Project name', u: '' }, { k: 'client', l: 'Client', u: '' }, { k: 'site', l: 'Site / location', u: '' },
+  { k: 'coord', l: 'Coordinate system', u: '' }, { k: 'units', l: 'Units', u: '', opt: ['Metric (mm / m)'] }, { k: 'desc', l: 'Description / scope', u: '', area: true, wide: true }
+];
+function renderInfo(ctx) {
+  const p = proj();
+  ctx.el.innerHTML =
+    '<div class="two-col"><div class="card"><h4>Project details</h4><div style="' + S_GRID + ';margin-top:8px">' + INFO_F.map((f) => fieldHtml('pi_' + f.k, f, p[f.k])).join('') + '</div>' +
+      '<div class="row" style="margin-top:12px"><button class="btn btn-amber btn-sm" id="piApply">Apply changes</button><span style="font-size:12px;color:var(--ink-faint)">Then Save (header) to store a revision.</span></div></div>' +
+    '<div class="card"><h4>Record</h4><p style="font-size:13px;line-height:1.7">Project key <code>' + esc(p.id) + '</code><br>Created ' + esc(p.created) + '<br>Last saved ' + esc(p.saved || 'never') + '<br>Revision ' + (p.rev || 0) + (DIRTY ? ' · <b style="color:var(--amber-deep)">unsaved changes</b>' : '') + '<br>Items ' + itemCount() + ' · options ' + p.options.length + '</p>' +
+      '<p style="font-size:12px;color:var(--ink-faint);margin-top:8px">Coordinate system example: MGA2020 Zone 56. Eastings / northings on component pages are in this system.</p></div></div>';
+  ctx.el.querySelector('#piApply').onclick = () => {
+    INFO_F.forEach((f) => { p[f.k] = ctx.el.querySelector('#pi_' + f.k).value.trim(); });
+    if (!p.name) p.name = 'Untitled project';
+    touch(); toast('Project details updated.'); renderContent();
+  };
+}
+
+function renderSaved(ctx) {
+  const lib = library(), list = Object.keys(lib).map((k) => lib[k]).sort((a, b) => String(b.saved).localeCompare(String(a.saved)));
+  const cnt = (q) => Object.keys(q.items || {}).reduce((n, k) => n + q.items[k].length, 0);
+  ctx.el.innerHTML =
+    '<div class="card" style="margin-bottom:14px"><h4>Open, reuse or delete a saved project</h4>' +
+      (list.length ? '<div style="' + S_GRID + ';margin-top:8px"><div style="grid-column:span 2"><label style="' + S_LBL + '" for="libSel">Saved project</label><select id="libSel" style="' + S_INP + '">' +
+        list.map((q) => '<option value="' + esc(q.id) + '">' + esc((q.no ? q.no + ' · ' : '') + q.name + ' · rev ' + q.rev) + '</option>').join('') + '</select></div></div>' +
+        '<div class="row" style="margin-top:10px;font-size:13px"><b style="margin-right:6px">Duplicate keeps:</b><label><input type="checkbox" id="dupItems" checked> component items</label><label><input type="checkbox" id="dupOpts"> study options</label><label><input type="checkbox" id="dupAssets" checked> asset library</label></div>' +
+        '<div class="row" style="margin-top:10px"><button class="btn btn-steel btn-sm" id="libOpen">Open</button><button class="btn btn-amber btn-sm" id="libDup">Duplicate as new project</button><button class="btn btn-sm" id="libDel">Delete from library</button></div>'
+      : '<p>No saved projects in this browser yet. Use <b>Save</b> in the header.</p>') + '</div>' +
+    '<div id="libTbl"></div>';
+  DPTable({ id: 'library', mount: ctx.el.querySelector('#libTbl'), title: 'Project library (this browser)', defaultSort: { key: 'saved', dir: 'desc' }, totals: false,
+    columns: [{ key: 'no', label: 'Project no.', width: 110, format: dash }, { key: 'name', label: 'Name', width: 220, hideable: false }, { key: 'client', label: 'Client', width: 140, format: dash },
+      { key: 'site', label: 'Site', width: 140, format: dash }, { key: 'rev', label: 'Rev', type: 'num', width: 70 }, { key: 'items', label: 'Items', type: 'num', width: 76 },
+      { key: 'options', label: 'Options', type: 'num', width: 86 }, { key: 'saved', label: 'Last saved', width: 140 }],
+    rows: list.map((q) => ({ no: q.no, name: q.name, client: q.client, site: q.site, rev: q.rev, items: cnt(q), options: (q.options || []).length, saved: q.saved })) });
+  if (!list.length) return;
+  const pick = () => library()[ctx.el.querySelector('#libSel').value];
+  ctx.el.querySelector('#libOpen').onclick = () => {
+    const q = pick(); if (!q) return;
+    if (DIRTY && q.id !== proj().id && !armed('libopen', 'Current project has unsaved changes — click Open again within 4 s to discard them.')) return;
+    PROJ = clone(q); LS.set('current', PROJ); DIRTY = false; LS.set('dirty', false); toast('Opened ' + q.name + ' rev ' + q.rev); go('project', 'overview');
+  };
+  ctx.el.querySelector('#libDup').onclick = () => {
+    const q = pick(); if (!q) return;
+    if (DIRTY && !armed('libdup', 'Current project has unsaved changes — click Duplicate again within 4 s to discard them.')) return;
+    const n = clone(q), b = blankProject();
+    n.id = b.id; n.no = ''; n.name = q.name + ' (copy)'; n.created = b.created; n.saved = ''; n.rev = 0;
+    const keepItems = ctx.el.querySelector('#dupItems').checked, keepAssets = ctx.el.querySelector('#dupAssets').checked;
+    Object.keys(n.items).forEach((k) => { const isAsset = k === 'layout/assets'; if ((isAsset && !keepAssets) || (!isAsset && !keepItems)) delete n.items[k]; });
+    if (!ctx.el.querySelector('#dupOpts').checked) n.options = [];
+    PROJ = n; LS.set('current', PROJ); DIRTY = true; LS.set('dirty', true);
+    toast('Duplicated as a new project — set its number and name, then Save.'); go('project', 'info');
+  };
+  ctx.el.querySelector('#libDel').onclick = () => {
+    const q = pick(); if (!q) return;
+    if (!armed('libdel' + q.id, 'Click Delete again within 4 s to remove "' + q.name + '" from this browser\'s library.')) return;
+    const lib2 = library(); delete lib2[q.id]; LS.set('library', lib2); toast('Removed ' + q.name + ' from the library.'); renderContent();
+  };
+}
+
+function renderSettings(ctx) {
+  ctx.el.innerHTML =
+    '<div class="card" style="max-width:720px"><h4>Where data is kept</h4><p>The working copy and the project library are stored in <b>this browser only</b> (key prefix <code>' + esc(APP.storageKey) + '</code>). Clearing browser data, a private window or another PC will not have them. <b>Export</b> a JSON file to keep a durable copy (project folder / GitHub).</p>' +
+      '<div class="row" style="margin-top:10px"><button class="btn btn-sm" id="resetView">Reset display settings</button><button class="btn btn-sm" id="wipeAll">Delete all CADTools data in this browser</button></div>' +
+      '<p style="font-size:12px;color:var(--ink-faint);margin-top:8px">Reset display settings keeps projects (clears navigation, column widths and hidden columns).</p></div>';
+  ctx.el.querySelector('#resetView').onclick = () => {
+    try { Object.keys(localStorage).filter((k) => k.indexOf(APP.storageKey + '.') === 0 && ['current', 'dirty', 'library'].indexOf(k.slice(APP.storageKey.length + 1)) < 0).forEach((k) => localStorage.removeItem(k)); } catch (e) { /* ignore */ }
+    toast('Display settings cleared — reloading.'); setTimeout(() => location.reload(), 700);
+  };
+  ctx.el.querySelector('#wipeAll').onclick = () => {
+    if (!armed('wipe', 'This deletes the working copy AND every saved project in this browser. Click again within 4 s to confirm.')) return;
+    LS.clearAll(); toast('All CADTools data cleared — reloading.'); setTimeout(() => location.reload(), 700);
+  };
+}
+
+/* ---------- Study Model ---------- */
+const OPT_COLS = [
+  { key: 'id', label: 'Option', width: 96, hideable: false }, { key: 'area', label: 'Area', width: 150 }, { key: 'iter', label: 'Iter.', type: 'num', width: 70 },
+  { key: 'parents', label: 'Based on', width: 130, format: dash }, { key: 'status', label: 'Status', width: 110, align: 'center' }, { key: 'title', label: 'Title', width: 200 },
+  { key: 'summary', label: 'Summary', width: 260, format: dash }, { key: 'feedback', label: 'Feedback / notes', width: 240, format: dash }, { key: 'reason', label: 'Reason rejected', width: 240, format: dash },
+  { key: 'updated', label: 'Updated', width: 130 }
+];
+function nextOptId() { const p = proj(); let n = p.options.length + 1, id; do { id = 'OPT-' + String(n++).padStart(3, '0'); } while (p.options.some((o) => o.id === id)); return id; }
+function areaSelect(id, val, withAll) { return '<select id="' + id + '" style="' + S_INP + '">' + (withAll ? ['All areas'] : []).concat(AREAS).map((a) => '<option' + (a === val ? ' selected' : '') + '>' + esc(a) + '</option>').join('') + '</select>'; }
+
+function renderOptions(ctx) {
+  const p = proj(), sub = ctx.subpage ? ctx.subpage.id : 'all';
+  const want = { all: null, proposed: 'Proposed', selected: 'Selected', rejected: 'Rejected' }[sub];
+  const area = PENDING_AREA || LAST_AREA || AREAS[0]; PENDING_AREA = null;
+  ctx.el.innerHTML =
+    sectionBlock('optNew', 'New option', 'Log a layout option for an area',
+      '<div class="card"><div style="' + S_GRID + '">' +
+        '<div><label style="' + S_LBL + '" for="onArea">Area</label>' + areaSelect('onArea', area, false) + '</div>' +
+        '<div style="grid-column:span 2"><label style="' + S_LBL + '" for="onTitle">Title</label><input id="onTitle" style="' + S_INP + '" placeholder="e.g. ROM bin north of crusher, conveyor CV01 straight run"></div>' +
+        '<div style="grid-column:1/-1"><label style="' + S_LBL + '" for="onSum">Summary — what is in this option and the information it is based on</label><textarea id="onSum" rows="3" style="' + S_INP + ';resize:vertical"></textarea></div>' +
+      '</div><div class="row" style="margin-top:10px"><button class="btn btn-amber btn-sm" id="onAdd">Add option ' + esc(nextOptId()) + '</button></div></div>') +
+    '<div id="optTbl" style="margin-top:14px"></div>';
+  DPTable({ id: 'opts-' + sub, mount: ctx.el.querySelector('#optTbl'), title: (want || 'All') + ' options', columns: OPT_COLS, rows: p.options.filter((o) => !want || o.status === want), defaultSort: { key: 'id', dir: 'asc' }, totals: false });
+  ctx.el.querySelector('#onAdd').onclick = () => {
+    const title = ctx.el.querySelector('#onTitle').value.trim();
+    if (!title) { toast('Give the option a title.'); return; }
+    const o = { id: nextOptId(), area: ctx.el.querySelector('#onArea').value, iter: 1, parents: '', status: 'Proposed', title: title, summary: ctx.el.querySelector('#onSum').value.trim(), feedback: '', reason: '', updated: nowStr() };
+    LAST_AREA = o.area; p.options.push(o); touch(); toast('Added ' + o.id); renderContent();
+  };
+}
+
+function optCard(o) {
+  return '<label class="card" style="display:block;cursor:pointer;margin-bottom:8px"><div style="display:flex;gap:10px;align-items:flex-start">' +
+    '<input type="checkbox" data-opt="' + esc(o.id) + '" style="margin-top:3px">' +
+    '<div style="flex:1;min-width:0"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><b style="font-family:\'IBM Plex Mono\',monospace">' + esc(o.id) + '</b>' + statusChip(o.status) +
+      '<span style="font-size:12px;color:var(--ink-faint)">' + esc(o.area) + ' · iteration ' + o.iter + (o.parents ? ' · from ' + esc(o.parents) : '') + '</span></div>' +
+      '<div style="font-weight:600;margin-top:4px">' + esc(o.title) + '</div>' +
+      (o.summary ? '<div style="font-size:13px;color:var(--ink-soft);margin-top:2px">' + esc(o.summary) + '</div>' : '') +
+      (o.feedback ? '<div style="font-size:12px;margin-top:4px"><b>Feedback:</b> ' + esc(o.feedback) + '</div>' : '') +
+      (o.reason ? '<div style="font-size:12px;margin-top:4px;color:var(--rust)"><b>Rejected:</b> ' + esc(o.reason) + '</div>' : '') +
+    '</div></div></label>';
+}
+function checkedOpts(el) { return Array.from(el.querySelectorAll('input[data-opt]:checked')).map((b) => b.dataset.opt); }
+
+function renderReview(ctx) {
+  const p = proj(), list = p.options.filter((o) => REVIEW_AREA === 'All areas' || o.area === REVIEW_AREA);
+  ctx.el.innerHTML =
+    '<div class="banner info" style="margin-bottom:12px">Tick one or more options, then select them, reject them (a reason is required and kept with the option), or return them to proposed. More than one option can be selected per area.</div>' +
+    '<div class="two-col"><div><div style="max-width:320px;margin-bottom:10px"><label style="' + S_LBL + '" for="rvArea">Area</label>' + areaSelect('rvArea', REVIEW_AREA, true) + '</div>' +
+      (list.length ? list.map(optCard).join('') : '<div class="card"><p>No options for this area yet. Add them in <b>Options register</b>.</p></div>') + '</div>' +
+    '<div class="card"><h4>Decision</h4><label style="' + S_LBL + ';margin-top:8px" for="rvNote">Notes — the reason when rejecting</label><textarea id="rvNote" rows="5" style="' + S_INP + ';resize:vertical"></textarea>' +
+      '<div class="row" style="margin-top:10px"><button class="btn btn-steel btn-sm" id="rvSel">Select ticked</button><button class="btn btn-sm" id="rvRej">Reject ticked</button><button class="btn btn-sm" id="rvBack">Return to proposed</button></div>' +
+      '<p style="font-size:12px;color:var(--ink-faint);margin-top:10px">Selected options carry forward to <b>Iterate</b>. Rejected options stay in the register with the reason, so the same bad layout is not proposed again.</p></div></div>';
+  ctx.el.querySelector('#rvArea').onchange = (e) => { REVIEW_AREA = e.target.value; renderContent(); };
+  const apply = (status) => {
+    const ids = checkedOpts(ctx.el), note = ctx.el.querySelector('#rvNote').value.trim();
+    if (!ids.length) { toast('Tick at least one option.'); return; }
+    if (status === 'Rejected' && !note) { toast('Enter the reason for rejecting in Notes.'); return; }
+    p.options.forEach((o) => {
+      if (ids.indexOf(o.id) < 0) return;
+      o.status = status; o.updated = nowStr();
+      if (status === 'Rejected') o.reason = note; else if (note) o.feedback = o.feedback ? o.feedback + ' | ' + note : note;
+      if (status === 'Proposed') o.reason = '';
+    });
+    touch(); toast(ids.length + ' option(s) → ' + status); renderContent();
+  };
+  ctx.el.querySelector('#rvSel').onclick = () => apply('Selected');
+  ctx.el.querySelector('#rvRej').onclick = () => apply('Rejected');
+  ctx.el.querySelector('#rvBack').onclick = () => apply('Proposed');
+}
+
+function renderIterate(ctx) {
+  const p = proj(), list = p.options.slice().sort((a, b) => (a.status === 'Selected' ? -1 : 0) - (b.status === 'Selected' ? -1 : 0));
+  ctx.el.innerHTML =
+    '<div class="banner" style="margin-bottom:12px"><b>v1:</b> iterating creates the next option record with the feedback attached, for the designer to develop. Automatic generation of new layouts is not built — see the README for the proposed route.</div>' +
+    '<div class="two-col"><div>' + (list.length ? list.map(optCard).join('') : '<div class="card"><p>No options yet. Add them in <b>Options register</b>.</p></div>') + '</div>' +
+    '<div class="card"><h4>Next iteration</h4><p style="font-size:12px;color:var(--ink-faint)">Tick the option(s) it builds on — selected options are listed first; rejected ones can be ticked to carry their lessons.</p>' +
+      '<div style="display:grid;gap:10px;margin-top:8px"><div><label style="' + S_LBL + '" for="itTitle">Title</label><input id="itTitle" style="' + S_INP + '"></div>' +
+      '<div><label style="' + S_LBL + '" for="itFb">Feedback to apply</label><textarea id="itFb" rows="5" style="' + S_INP + ';resize:vertical"></textarea></div>' +
+      '<div><label style="' + S_LBL + '"><input type="checkbox" id="itSup"> Mark the proposed parents as superseded</label></div></div>' +
+      '<div class="row" style="margin-top:10px"><button class="btn btn-amber btn-sm" id="itGo">Create ' + esc(nextOptId()) + '</button></div></div></div>';
+  ctx.el.querySelector('#itGo').onclick = () => {
+    const ids = checkedOpts(ctx.el), fb = ctx.el.querySelector('#itFb').value.trim();
+    if (!ids.length) { toast('Tick the option(s) this iteration builds on.'); return; }
+    if (!fb) { toast('Enter the feedback to apply.'); return; }
+    const par = p.options.filter((o) => ids.indexOf(o.id) >= 0);
+    const o = { id: nextOptId(), area: par[0].area, iter: Math.max.apply(null, par.map((x) => x.iter || 1)) + 1, parents: ids.join(', '), status: 'Proposed',
+      title: ctx.el.querySelector('#itTitle').value.trim() || par[0].title + ' (rev)', summary: '', feedback: fb, reason: '', updated: nowStr() };
+    if (ctx.el.querySelector('#itSup').checked) par.forEach((x) => { if (x.status === 'Proposed') { x.status = 'Superseded'; x.updated = nowStr(); } });
+    p.options.push(o); touch(); toast('Created ' + o.id + ' (iteration ' + o.iter + ')'); go('study', 'options', 'all');
+  };
+}
+
+/* ############################################################################
+   2. TEMPLATE CORE — shared standard. Change in the Template repo, not per tool.
+   ############################################################################ */
+
+const LOGO_DATA_URI = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA6IAAACGCAMAAADw88cIAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAZQTFRF////////VXz1bAAAAAJ0Uk5T/wDltzBKAAAH4klEQVR42uzd3brbKAyFYen+b3oO5plOd5vYIC0JG7512AZvR/D6l9jmhJAHx+It/83Pf6GghDyAqP2WD/9MVQlZR9T+yL1cQkgXUfs73/+X4hLSStQ+5vID1JeQLqJmAaIgJaSHqFmQKEoJqSdqliGKUUJKiZoliYKUkEKiJiAKUkKKiJppiIKUkAKiZjqiGCVETdSkRDFKiJaoiYmClBAhUTM9UYwSoiJqJUQxSoiGqBURxSghCqJWRhSkhOSJWiVRjBKSJGq1RDFKSIqoVRPFKCEJohYkahAlpIGoNRDFKCFRomGh4eNjQsjziGKUkBBR6yKKUUICRPuEYpSQeaIGUUJ2IprijVFCJon2Cj3NKNsnkiWaAgZRiJJHEfW80MPGKURJkmhGkUEUoqSYaIaQWYFRSwSi0fVi8/omol4u1KyI6BPH0GZEUdpNNFF/eybRpw2h/YiidCVRSRePjIBKos8aQVsSxWgbUbHQ8XFQS9QgWkwUo2uI5vp3bijUEjWIFhPFaA9R4S40vcOFKETJJdEqoLMtbDOjuxLFaDfRgkPc62YQhSi5IyoCExsRxUQNosVEMdpKNNGF4TFxCNHHDgEq/HyiF9Uu6SeIQpQEibYIHTzmgyhEyZ9E451XcF4mmy9ML49XTHrB78fHKXQB0crtaBnR0XPdrtnDE5ulu6WMLPd6ObI6f17u3ezP+TrmDwAyrVWHHrnxY1VCZ/5fTPT+XDe13YkeBEanSP76/CDR2S8l+Pnh4JqIr0KmFtDRWPF4kiui4s3E1ddUE3XVRkxw5ja4UkN9NUQ011lKold/OX+qm1rAoiEQamzfzhb0O/LZ3WgV0bZjlAmiQ0saIjr/naqIjtciYrSvF4VDINT4G9HEdwh8Tk3UlQcauaufQ0RNt9zkd9IRvfq76UvG1tmLuiEQamx5oRNf4dsnG4nmxnMNUWsmauor55NE87d1ejtxIVGXEJ0p3nKiudEh7J7sjckXEpWtcf+ebOUBz/9EO4ROGa0gmsOwDVFbStSkG5WGTrSlWwcxUYMoRJ9N1M4mGq71k4laMVFbQNTeRtQWHudWDYFhosklTZduJVGD6HqiJl3hjpNJiK4jOjuBcKz95M3aoYVacqUWEf3xeVEnjPfCyBhdOARGf2CdPM5NzqlaSjSrKbNONj5b8e5zgwvQEh3aP/49G1zRCTNPq7w9j50ud8UQgGiWqDUS9brtxlB7JdHsOFVsKG+IFnZXKdHqA+2HEPVn9M+2RAMzv/QrbOG5VOVDwN9B1F9M1JuJZr+UkqgtJGq6XjiBqENUSrTvS6XqbAcQ9ZOJDh7pnnigu5xo6paEmKhDFKLr+geixxO1dqJ2HFGD6OlEU0PA4kQdomP9M3RwAdGdiWaGwGDjg4kG1jc+7Wxnov5aomuHwOiGLzcBUEXU30E09Xt9iO5AVDgEBhvniDpEo9uwfYg6RCuQ/GpsqYcuHEe04PFibyfqhxFd8HgxEVE7g6hD9HSi3jx+zBPe/ECicaNbEg3c9ns90eYH6X4m6hC9+uMQ/fznTiHqnc+jTxEVCH0n0dhV7+2IBifPbEE0flk1cukmTO7lRL0qCaKlv1QpL8rriHYPgdhWJP5KFxcQtR2JOkRPJ6qcymtfH5XZIRSi6gejQPQgolMvwSs4zq147dITiWofL7YTUYPoX0QFb2fR7USPJZq63wrRo4h6tdAqogbRjYnOrbDkPXCrifr07Z/MheyP7bREpyf4rCXqEE0QLXsC4FOJZt+3LdyJCn7HCNHHE80/R3dgjV5G1K6J2vxfy0+FqiU6tH+tuyc28IPnk4kOPm431ourhkDqvqjNE51d4vxFpmVEc3thzeyi44l29OIjh8BMa+Fxc+hGTRtRfybRwfmWEJVv0d5J1KqEfm3qxxMdm8y1CVFf0otbEbUSoRdNa4m67pCykOjIZK6Tibov3Y1qhkBmBEfPoeNA3ZYQ9XVb0PsBPNVLLybqr+tFX0jU7etFJJXQ26ZeSjS/1DaiU3d1zyIqXcC7jnP/e+tjxOgEyMu2EM3NXXsfUc92YnIBexAdmVkV9Tkm1EuEtveP7qa57UPUs53ouWGwaAjEGltwj5gBOjgoaoRmuld5FnM2UU93Ym4Ja4ZArPH1mWwJ0NJr89HVL7pU4BAtuNSoWECbsvT4ub3YpD0HLb7uV7EVl51BJYmOdfx7iM4/fEe8BOseA9HrwEPt7z4kmMGqJCq9ZySZppEnavsRvSmqohflNyWaroL8aKbYZ5UIJdSN/E7UO4SmdJ/k8bZwFAmiPYeVdMD3SokuzpFtiAofAlxxDnvyUS2Fg6iOaNlJLESp2/FE8z8SckMoREkdUW8WykhDKGklitAeolToXKKO0BcQpUAnE80wM4i2EKU+ZxP1PqLUPkSU8kC06TiX0keIUhyIdv1Qi8rPI6UuEJ22Jtn9kgGnlAOiIWyCvS8hZJKoQ5SQRxP1aqKUnZAUUa8lStUJSRL1SqIUnZA0US8jSskJURD1opkLVJwQDVEvIUrBCVER9QKi1JsQHdG5Hy4ClJB2oi4lSrEJUROd+GEUQglZQdRFRKk0ITVER9+6AVBCFhEde1I1QglZRnTkN8YAJWQh0fs3sgCUkKVE715rhk9CFhP1q/fQ8vouQh5A9A+KV0QpLSFLiPqHdxNe0SWEdBP9RfIDUSpKiDT/CDAAoT9kN6VOzDMAAAAASUVORK5CYII=';
+
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+const $ = (id) => document.getElementById(id);
+
+// localStorage wrapper — every call guarded (storage can be blocked or empty)
+const LS = {
+  k: (key) => APP.storageKey + '.' + key,
+  get(key, dflt) { try { const v = localStorage.getItem(this.k(key)); return v == null ? dflt : JSON.parse(v); } catch (e) { return dflt; } },
+  set(key, val) { try { localStorage.setItem(this.k(key), JSON.stringify(val)); } catch (e) { /* ignore */ } },
+  clearAll() { try { Object.keys(localStorage).filter((k) => k.indexOf(APP.storageKey + '.') === 0).forEach((k) => localStorage.removeItem(k)); } catch (e) { /* ignore */ } }
+};
+
+let toastTimer = null;
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+
+/* ---------- state ---------- */
+const state = {
+  navMode: APP.allowNavSwitch ? LS.get('navMode', APP.defaultNavMode) : APP.defaultNavMode,
+  cur: LS.get('cur', null),                 // { s, p, sp }
+  lastPage: LS.get('lastPage', {}),         // section id -> page id
+  lastSub: LS.get('lastSub', {}),           // "s/p" -> subpage id
+  expanded: LS.get('expanded', null),       // "s:<id>" / "p:<s>/<p>" -> bool
+  navWidth: LS.get('navWidth', 250),
+  navCollapsed: LS.get('navCollapsed', false),
+  sections: LS.get('sections', {}),         // collapsible section blocks: id -> collapsed bool
+  cursor: null                              // keyboard cursor in vertical nav (row key)
+};
+
+const secById = (s) => NAV.find((x) => x.id === s);
+const pageById = (s, p) => { const sec = secById(s); return sec ? (sec.pages || []).find((x) => x.id === p) : null; };
+const subById = (s, p, sp) => { const pg = pageById(s, p); return pg && pg.subpages ? pg.subpages.find((x) => x.id === sp) : null; };
+
+function normaliseCur(c) {
+  let s = c && secById(c.s) ? c.s : NAV[0].id;
+  const sec = secById(s);
+  let p = c && pageById(s, c.p) ? c.p : (state.lastPage[s] && pageById(s, state.lastPage[s]) ? state.lastPage[s] : (sec.pages[0] || {}).id);
+  const pg = pageById(s, p);
+  let sp = null;
+  if (pg && pg.subpages && pg.subpages.length) {
+    sp = c && subById(s, p, c.sp) ? c.sp : (state.lastSub[s + '/' + p] && subById(s, p, state.lastSub[s + '/' + p]) ? state.lastSub[s + '/' + p] : pg.subpages[0].id);
+  }
+  return { s, p, sp };
+}
+
+function go(s, p, sp) {
+  state.cur = normaliseCur({ s, p, sp });
+  state.lastPage[state.cur.s] = state.cur.p;
+  if (state.cur.sp) state.lastSub[state.cur.s + '/' + state.cur.p] = state.cur.sp;
+  // make sure the current branch is open in the vertical tree
+  state.expanded['s:' + state.cur.s] = true;
+  if (state.cur.sp) state.expanded['p:' + state.cur.s + '/' + state.cur.p] = true;
+  LS.set('cur', state.cur); LS.set('lastPage', state.lastPage); LS.set('lastSub', state.lastSub); LS.set('expanded', state.expanded);
+  closeFilterPop();
+  renderNav(); renderContent();
+}
+
+/* ---------- header ---------- */
+function renderHeader() {
+  document.title = APP.title + ' — Design Process';
+  $('dpLogo').src = LOGO_DATA_URI;
+  $('dpTitle').textContent = APP.title;
+  $('dpSub').textContent = APP.subtitle;
+  $('dpVersion').textContent = 'v' + APP.version;
+  $('dpFile').textContent = APP.fileStem + '_v' + APP.version + '.html';
+  $('dpVersion').onclick = openVersionHistory;
+
+  const right = $('dpHeadRight');
+  let html = '<div class="hgroup" id="hdrTool">';
+  HEADER_RIGHT.forEach((it, i) => {
+    const id = it.id || ('hdr' + i);
+    if (it.type === 'pill') html += '<span class="hpill' + (it.warn ? ' warn' : '') + '" id="' + esc(id) + '"' + (it.title ? ' title="' + esc(it.title) + '"' : '') + '>' + esc(it.text) + '</span>';
+    else if (it.type === 'sep') html += '<span class="hsep" aria-hidden="true"></span>';
+    else if (it.type === 'select') html += '<span class="hfield">' + (it.label ? '<label for="' + esc(id) + '">' + esc(it.label) + '</label>' : '') + '<select id="' + esc(id) + '">' +
+      (it.options || []).map((o) => '<option value="' + esc(o.value) + '"' + (o.value === it.value ? ' selected' : '') + '>' + esc(o.label) + '</option>').join('') + '</select></span>';
+    else html += '<button class="hbtn' + (it.style && it.style !== 'ghost' ? ' ' + esc(it.style) : '') + '" id="' + esc(id) + '"' + (it.title ? ' title="' + esc(it.title) + '"' : '') + (it.disabled ? ' disabled' : '') + '>' + esc(it.label) + '</button>';
+  });
+  html += '</div>';
+  if (APP.allowNavSwitch) {
+    html += '<span class="hsep" aria-hidden="true"></span><div class="hgroup"><span class="seg-label">Nav</span><div class="seg" role="group" aria-label="Navigation layout">' +
+      '<button data-mode="horizontal" aria-pressed="' + (state.navMode === 'horizontal') + '" title="Tabs across the top">Horizontal</button>' +
+      '<button data-mode="vertical" aria-pressed="' + (state.navMode === 'vertical') + '" title="Tree down the left">Vertical</button></div></div>';
+  }
+  right.innerHTML = html;
+  HEADER_RIGHT.forEach((it, i) => {
+    const el = $(it.id || ('hdr' + i));
+    if (!el) return;
+    if (it.type === 'button' && it.onClick) el.addEventListener('click', it.onClick);
+    if (it.type === 'select' && it.onChange) el.addEventListener('change', (e) => it.onChange(e.target.value));
+  });
+  right.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => setNavMode(b.dataset.mode)));
+}
+// Update a header pill/button from tool code: setHeaderText('hdrData', 'Loaded: file.csv')
+function setHeaderText(id, text, warn) { const el = $(id); if (el) { el.textContent = text; if (warn != null) el.classList.toggle('warn', !!warn); } }
+
+function setNavMode(mode) {
+  state.navMode = mode === 'vertical' ? 'vertical' : 'horizontal';
+  LS.set('navMode', state.navMode);
+  document.body.classList.toggle('nav-h', state.navMode === 'horizontal');
+  document.body.classList.toggle('nav-v', state.navMode === 'vertical');
+  document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.navMode)));
+  closeFilterPop();
+  renderNav();
+}
+
+/* ---------- version history ---------- */
+function openVersionHistory() {
+  const body = VERSION_HISTORY.map((e) =>
+    '<div class="vh-entry"><div class="vh-entry-head"><span class="vh-version' + (e.version === APP.version ? ' current' : '') + '">v' + esc(e.version) + '</span>' +
+    (e.date ? '<span class="vh-date">' + esc(e.date) + '</span>' : '') + (e.version === APP.version ? '<span class="vh-date">· this file</span>' : '') + '</div>' +
+    '<ul>' + e.changes.map((c) => '<li>' + esc(c) + '</li>').join('') + '</ul></div>').join('');
+  $('vh-root').innerHTML = '<div class="vh-overlay" id="vhOverlay"><div class="vh-modal" role="dialog" aria-modal="true" aria-label="Version history">' +
+    '<div class="vh-modal-head"><h3>Version History — ' + esc(APP.fileStem) + '_v' + esc(APP.version) + '.html</h3><button class="vh-close" id="vhClose" aria-label="Close">&times;</button></div>' +
+    '<div class="vh-modal-body">' + body + '</div></div></div>';
+  $('vhOverlay').addEventListener('click', (e) => { if (e.target.id === 'vhOverlay') closeVersionHistory(); });
+  $('vhClose').addEventListener('click', closeVersionHistory);
+}
+function closeVersionHistory() { $('vh-root').innerHTML = ''; }
+
+/* ---------- navigation ---------- */
+function renderNav() { if (state.navMode === 'vertical') renderVNav(); else renderHNav(); }
+
+function renderHNav() {
+  const c = state.cur;
+  const sec = secById(c.s), pg = pageById(c.s, c.p);
+  $('hnavL1').innerHTML = NAV.map((s) => '<button class="tab" role="tab" data-s="' + esc(s.id) + '" aria-selected="' + (s.id === c.s) + '" title="' + esc(s.label) + '">' + esc(s.label) + '</button>').join('');
+  $('hnavL2').innerHTML = (sec.pages || []).map((p) => '<button class="tab" role="tab" data-p="' + esc(p.id) + '" aria-selected="' + (p.id === c.p) + '" title="' + esc(p.label) + '">' + esc(p.label) + '</button>').join('');
+  $('hnavL3').innerHTML = pg && pg.subpages ? pg.subpages.map((sp) => '<button class="tab" role="tab" data-sp="' + esc(sp.id) + '" aria-selected="' + (sp.id === c.sp) + '" title="' + esc(sp.label) + '">' + esc(sp.label) + '</button>').join('') : '';
+}
+
+function vKey(kind, s, p, sp) { return kind + ':' + s + (p ? '/' + p : '') + (sp ? '/' + sp : ''); }
+
+function renderVNav() {
+  const c = state.cur;
+  const aside = $('vnav');
+  aside.style.width = state.navWidth + 'px';
+  aside.classList.toggle('collapsed', !!state.navCollapsed);
+  $('vnavHide').textContent = state.navCollapsed ? '»' : '«';
+  $('vnavHide').title = state.navCollapsed ? 'Show navigation panel' : 'Collapse navigation panel';
+  const totalPages = NAV.reduce((n, s) => n + (s.pages || []).length, 0);
+  let html = '<div class="vn-row vn-all" data-kind="all" title="Double-click to expand / collapse every section"><span class="chev"></span><span class="nm">All sections</span><span class="cnt">' + totalPages + '</span></div>';
+  NAV.forEach((s) => {
+    const open = !!state.expanded['s:' + s.id];
+    const k = vKey('sec', s.id);
+    html += '<div class="vn-group"><div class="vn-row vn-sec' + (s.id === c.s ? ' selected' : '') + (state.cursor === k ? ' cursor' : '') + '" data-kind="sec" data-s="' + esc(s.id) + '" data-key="' + esc(k) + '">' +
+      '<span class="chev" data-toggle="1">' + (open ? '▾' : '▸') + '</span><span class="nm">' + esc(s.label) + '</span><span class="cnt">' + (s.pages || []).length + '</span></div>' +
+      '<div class="vn-children' + (open ? ' open' : '') + '">';
+    (s.pages || []).forEach((p) => {
+      const hasSubs = !!(p.subpages && p.subpages.length);
+      const popen = hasSubs && !!state.expanded['p:' + s.id + '/' + p.id];
+      const isCur = s.id === c.s && p.id === c.p;
+      const pk = vKey('page', s.id, p.id);
+      html += '<div class="vn-row vn-page' + (isCur ? (hasSubs ? ' in-path' : ' selected') : '') + (state.cursor === pk ? ' cursor' : '') + '" data-kind="page" data-s="' + esc(s.id) + '" data-p="' + esc(p.id) + '" data-key="' + esc(pk) + '">' +
+        '<span class="chev"' + (hasSubs ? ' data-toggle="1"' : '') + '>' + (hasSubs ? (popen ? '▾' : '▸') : '') + '</span><span class="nm">' + esc(p.label) + '</span>' + (hasSubs ? '<span class="cnt">' + p.subpages.length + '</span>' : '') + '</div>';
+      if (hasSubs) {
+        html += '<div class="vn-children' + (popen ? ' open' : '') + '">';
+        p.subpages.forEach((sp) => {
+          const sk = vKey('sub', s.id, p.id, sp.id);
+          html += '<div class="vn-row vn-sub' + (isCur && sp.id === c.sp ? ' selected' : '') + (state.cursor === sk ? ' cursor' : '') + '" data-kind="sub" data-s="' + esc(s.id) + '" data-p="' + esc(p.id) + '" data-sp="' + esc(sp.id) + '" data-key="' + esc(sk) + '">' +
+            '<span class="chev"></span><span class="nm">' + esc(sp.label) + '</span></div>';
+        });
+        html += '</div>';
+      }
+    });
+    html += '</div></div>';
+  });
+  $('vnavBody').innerHTML = html;
+}
+
+function setAllExpanded(open) {
+  NAV.forEach((s) => {
+    state.expanded['s:' + s.id] = open;
+    (s.pages || []).forEach((p) => { if (p.subpages && p.subpages.length) state.expanded['p:' + s.id + '/' + p.id] = open; });
+  });
+  if (!open) { state.expanded['s:' + state.cur.s] = false; }
+  LS.set('expanded', state.expanded); renderVNav();
+}
+
+function toggleKey(k) { state.expanded[k] = !state.expanded[k]; LS.set('expanded', state.expanded); renderVNav(); }
+
+function onVNavClick(e) {
+  const row = e.target.closest('.vn-row'); if (!row) return;
+  const d = row.dataset;
+  state.cursor = d.key || null;
+  if (d.kind === 'all') { return; }   // re-rendering here would break the double-click (expand / collapse all)
+  // clicking the chevron only opens/closes the branch
+  if (e.target.closest('[data-toggle]')) { toggleKey(d.kind === 'sec' ? 's:' + d.s : 'p:' + d.s + '/' + d.p); return; }
+  if (d.kind === 'sec') {
+    if (state.cur.s === d.s) toggleKey('s:' + d.s);       // same section: open/close
+    else go(d.s);                                         // other section: open it and show its last page
+  } else if (d.kind === 'page') {
+    const pg = pageById(d.s, d.p);
+    if (state.cur.s === d.s && state.cur.p === d.p && pg.subpages && pg.subpages.length) toggleKey('p:' + d.s + '/' + d.p);
+    else go(d.s, d.p);
+  } else if (d.kind === 'sub') go(d.s, d.p, d.sp);
+}
+
+// Keyboard: ↑/↓ move through the visible rows (and open them), ←/→ collapse/expand, Enter opens
+function visibleRows() { return Array.from($('vnavBody').querySelectorAll('.vn-row[data-key]')).filter((r) => r.offsetParent !== null); }
+function onVNavKey(e) {
+  if (state.navMode !== 'vertical' || state.navCollapsed) return;
+  const rows = visibleRows(); if (!rows.length) return;
+  let i = rows.findIndex((r) => r.dataset.key === state.cursor);
+  if (i < 0) i = rows.findIndex((r) => r.classList.contains('selected'));
+  const row = rows[Math.max(0, i)], d = row.dataset;
+  const branchKey = d.kind === 'sec' ? 's:' + d.s : (d.kind === 'page' && pageById(d.s, d.p).subpages ? 'p:' + d.s + '/' + d.p : null);
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    const next = rows[Math.min(rows.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))];
+    state.cursor = next.dataset.key;
+    const n = next.dataset;
+    if (n.kind === 'sub') go(n.s, n.p, n.sp); else if (n.kind === 'page') go(n.s, n.p); else renderVNav();
+    focusCursor();
+  } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+    e.preventDefault();
+    if (branchKey) { state.expanded[branchKey] = e.key === 'ArrowRight'; LS.set('expanded', state.expanded); renderVNav(); }
+    else if (e.key === 'ArrowLeft' && d.kind === 'sub') { state.cursor = vKey('page', d.s, d.p); renderVNav(); }
+    else if (e.key === 'ArrowLeft' && d.kind === 'page') { state.cursor = vKey('sec', d.s); renderVNav(); }
+    focusCursor();
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (d.kind === 'sec') go(d.s); else if (d.kind === 'page') go(d.s, d.p); else go(d.s, d.p, d.sp);
+  }
+}
+function focusCursor() { const el = $('vnavBody').querySelector('.vn-row.cursor'); if (el) el.scrollIntoView({ block: 'nearest' }); }
+
+function initSplitter() {
+  const split = $('vnav-split'), aside = $('vnav');
+  split.addEventListener('mousedown', (e) => {
+    if (state.navCollapsed) return;
+    e.preventDefault();
+    const startX = e.clientX, startW = aside.getBoundingClientRect().width;
+    split.classList.add('dragging');
+    const move = (ev) => { state.navWidth = Math.max(170, Math.min(420, startW + ev.clientX - startX)); aside.style.width = state.navWidth + 'px'; };
+    const up = () => { split.classList.remove('dragging'); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); LS.set('navWidth', state.navWidth); };
+    document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+  });
+}
+
+/* ---------- content ---------- */
+function renderContent() {
+  const c = state.cur, sec = secById(c.s), pg = pageById(c.s, c.p), sp = c.sp ? subById(c.s, c.p, c.sp) : null;
+  $('crumbs').innerHTML = esc(sec.label) + ' › ' + (sp ? esc(pg.label) + ' › <b>' + esc(sp.label) + '</b>' : '<b>' + esc(pg.label) + '</b>');
+  $('pageTitle').textContent = sp ? pg.label + ' — ' + sp.label : pg.label;
+  $('pageActions').innerHTML = '';
+  const el = $('pageBody');
+  el.innerHTML = '';
+  const fn = PAGES[c.s + '/' + c.p + (c.sp ? '/' + c.sp : '')] || PAGES[c.s + '/' + c.p];
+  const ctx = { section: sec, page: pg, subpage: sp, el: el, setActions: (h) => { $('pageActions').innerHTML = h; } };
+  if (fn) fn(ctx);
+  else el.innerHTML = '<div class="banner">No content yet for <code>' + esc(c.s + '/' + c.p + (c.sp ? '/' + c.sp : '')) + '</code>. Add a function to <code>PAGES</code>.</div>';
+  applySectionStates();
+}
+
+/* Collapsible section block (OBD / Scorecard style). Returns HTML; state is remembered. */
+function sectionBlock(id, title, note, bodyHtml) {
+  const collapsed = !!state.sections[id];
+  return '<div class="section-head" data-sec="' + esc(id) + '"><div class="section-head-left"><button class="sec-toggle" data-sec-toggle="' + esc(id) + '" aria-label="Collapse or expand">' + (collapsed ? '+' : '−') + '</button>' +
+    '<h3>' + esc(title) + '</h3></div>' + (note ? '<span class="note">' + esc(note) + '</span>' : '') + '</div>' +
+    '<div class="section-body' + (collapsed ? ' collapsed' : '') + '" data-sec-body="' + esc(id) + '">' + bodyHtml + '</div>';
+}
+function applySectionStates() {
+  const btn = document.querySelector('[data-act="toggle-all-sections"]');
+  if (btn) { const ids = Array.from(document.querySelectorAll('[data-sec-body]')).map((b) => b.dataset.secBody); btn.textContent = ids.some((i) => !state.sections[i]) ? 'Collapse all' : 'Expand all'; }
+}
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-sec-toggle]');
+  if (t) {
+    const id = t.dataset.secToggle; state.sections[id] = !state.sections[id]; LS.set('sections', state.sections);
+    const body = document.querySelector('[data-sec-body="' + id + '"]'); if (body) body.classList.toggle('collapsed', state.sections[id]);
+    t.textContent = state.sections[id] ? '+' : '−'; applySectionStates(); return;
+  }
+  const all = e.target.closest('[data-act="toggle-all-sections"]');
+  if (all) {
+    const ids = Array.from(document.querySelectorAll('[data-sec-body]')).map((b) => b.dataset.secBody);
+    const collapse = ids.some((i) => !state.sections[i]);
+    ids.forEach((i) => { state.sections[i] = collapse; }); LS.set('sections', state.sections); renderContent();
+  }
+});
+
+/* ############################################################################
+   DPTable — standard data table (sort · filter · hide/restore · resize · totals)
+   DPTable({ id, mount, title, columns, rows, defaultSort:{key,dir}, totals:true })
+   column: { key, label, width, type:'num'|'text', align:'left'|'right'|'center',
+             format:(v,row)=>text, total:'sum'|'avg'|fn(rows)=>text,
+             sortable:true, filterable:true, hideable:true }
+   ############################################################################ */
+const TABLE_FILTERS = {};   // kept for the session (per table id) so filters survive page switches
+const TABLE_SORT = {};
+let filterPop = null;       // { el, tableId, colKey, anchor, reposition }
+
+function DPTable(o) {
+  const t = {
+    id: o.id, mount: o.mount, title: o.title || '', rows: o.rows || [], totals: o.totals !== false,
+    cols: o.columns.map((c) => Object.assign({ sortable: true, filterable: true, hideable: true, type: 'text', width: 120 }, c, { align: c.align || (c.type === 'num' ? 'right' : 'left') })),
+    defaultSort: o.defaultSort || null
+  };
+  t.hidden = LS.get('tbl.' + t.id + '.hidden', []).filter((k) => t.cols.some((c) => c.key === k && c.hideable));
+  t.widths = LS.get('tbl.' + t.id + '.widths', {});
+  t.filters = TABLE_FILTERS[t.id] || (TABLE_FILTERS[t.id] = {});
+  if (!(t.id in TABLE_SORT)) TABLE_SORT[t.id] = t.defaultSort ? Object.assign({}, t.defaultSort) : null;
+
+  const col = (k) => t.cols.find((c) => c.key === k);
+  const visCols = () => t.cols.filter((c) => t.hidden.indexOf(c.key) < 0);
+  const width = (c) => t.widths[c.key] || c.width;
+  const text = (row, c) => { const v = row[c.key]; return c.format ? String(c.format(v, row)) : (v == null || v === '' ? '—' : String(v)); };
+
+  function shownRows() {
+    const keys = Object.keys(t.filters).filter((k) => col(k));
+    let r = t.rows.filter((row) => keys.every((k) => t.filters[k].has(text(row, col(k)))));
+    const s = TABLE_SORT[t.id];
+    if (s && col(s.key)) {
+      const c = col(s.key), dir = s.dir === 'desc' ? -1 : 1;
+      r = r.slice().sort((a, b) => {
+        const va = a[c.key], vb = b[c.key];
+        if (c.type === 'num') { const na = va == null || va === '' ? null : Number(va), nb = vb == null || vb === '' ? null : Number(vb);
+          if (na == null && nb == null) return 0; if (na == null) return 1; if (nb == null) return -1; return (na - nb) * dir; }
+        return String(va == null ? '' : va).localeCompare(String(vb == null ? '' : vb), undefined, { numeric: true, sensitivity: 'base' }) * dir;
+      });
+    }
+    return r;
+  }
+
+  function totalText(c, rows) {
+    if (!c.total) return '';
+    if (typeof c.total === 'function') return String(c.total(rows));
+    const nums = rows.map((r) => Number(r[c.key])).filter((n) => !isNaN(n));
+    if (!nums.length) return '—';
+    const v = c.total === 'avg' ? nums.reduce((a, b) => a + b, 0) / nums.length : nums.reduce((a, b) => a + b, 0);
+    return c.format ? String(c.format(v)) : String(Math.round(v * 100) / 100);
+  }
+
+  function render() {
+    const cols = visCols(), rows = shownRows(), nF = Object.keys(t.filters).length, s = TABLE_SORT[t.id];
+    const sortChanged = JSON.stringify(s) !== JSON.stringify(t.defaultSort);
+    const tw = cols.reduce((n, c) => n + width(c), 0);
+    let h = '<div class="tbl-card"><div class="tbl-toolbar"><div class="tl">' + (t.title ? '<h3>' + esc(t.title) + '</h3>' : '') +
+      '<button class="btn btn-sm" data-act="clear-filters"' + (nF ? '' : ' disabled') + '>Clear all filters' + (nF ? ' (' + nF + ')' : '') + '</button>' +
+      (sortChanged ? '<button class="btn btn-sm" data-act="reset-sort">Reset sorting</button>' : '') +
+      (nF ? '<span class="shown">' + rows.length + ' of ' + t.rows.length + ' rows shown</span>' : '<span class="shown">' + t.rows.length + ' rows</span>') +
+      '</div><div class="tr">' +
+      (t.hidden.length ? '<div class="hidden-chips">' + t.hidden.map((k) => '<button class="hidden-chip" data-act="show-col" data-key="' + esc(k) + '" title="Show ' + esc(col(k).label) + '">+ ' + esc(col(k).label) + '</button>').join('') + '</div>' : '') +
+      '<button class="btn btn-sm" data-act="show-all"' + (t.hidden.length ? '' : ' disabled') + '>Show all columns</button></div></div>';
+    h += '<div class="tbl-wrap scroll"><table class="dp-grid" style="width:' + tw + 'px"><colgroup>' + cols.map((c) => '<col data-key="' + esc(c.key) + '" style="width:' + width(c) + 'px">').join('') + '</colgroup><thead><tr>';
+    cols.forEach((c) => {
+      const sorted = s && s.key === c.key, fActive = !!t.filters[c.key];
+      h += '<th data-key="' + esc(c.key) + '" class="' + (width(c) < 100 && (c.filterable || c.hideable) ? 'th-narrow' : '') + '" title="' + esc(c.title || c.label) + '"><div class="th-inner">' +
+        '<span class="th-label ' + c.align + (c.sortable ? '' : ' nosort') + '"' + (c.sortable ? ' data-act="sort"' : '') + '><span class="th-text">' + esc(c.label) + '</span>' +
+        (c.sortable ? '<span class="sort-arrow">' + (sorted ? (s.dir === 'asc' ? '▲' : '▼') : '↕') + '</span>' : '') + '</span>' +
+        '<span class="th-controls">' +
+        (c.filterable ? '<button class="th-icon-btn col-filter' + (fActive ? ' active' : '') + '" data-act="filter" title="Filter ' + esc(c.label) + '" aria-label="Filter ' + esc(c.label) + '"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 4h18l-7 9v7l-4 2v-9z"/></svg></button>' : '') +
+        (c.hideable ? '<button class="th-icon-btn col-hide" data-act="hide" title="Hide ' + esc(c.label) + '" aria-label="Hide ' + esc(c.label) + '">✕</button>' : '') +
+        '</span></div><span class="rs" data-act="resize" title="Drag to resize"></span></th>';
+    });
+    h += '</tr></thead><tbody>';
+    if (!rows.length) h += '<tr><td class="empty" colspan="' + cols.length + '">No rows match the filters. <button class="btn btn-sm" data-act="clear-filters">Clear all filters</button></td></tr>';
+    rows.forEach((r) => { h += '<tr>' + cols.map((c) => { const v = text(r, c); return '<td class="' + (c.type === 'num' ? 'num' : (c.align === 'center' ? 'center' : '')) + '" title="' + esc(v) + '">' + esc(v) + '</td>'; }).join('') + '</tr>'; });
+    h += '</tbody>';
+    if (t.totals && cols.some((c) => c.total)) {
+      h += '<tfoot><tr>' + cols.map((c, i) => {
+        const v = i === 0 && !c.total ? 'Totals' + (nF ? ' (rows shown)' : '') : totalText(c, rows);
+        return '<td class="' + (c.type === 'num' ? 'num' : '') + '">' + esc(v) + '</td>';
+      }).join('') + '</tr></tfoot>';
+    }
+    h += '</table></div></div>';
+    t.mount.innerHTML = h;
+  }
+
+  function saveHidden() { LS.set('tbl.' + t.id + '.hidden', t.hidden); }
+
+  t.mount.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-act]'); if (!a || a.dataset.act === 'resize') return;
+    const th = a.closest('th'), key = a.dataset.key || (th && th.dataset.key);
+    switch (a.dataset.act) {
+      case 'sort': { const s = TABLE_SORT[t.id]; TABLE_SORT[t.id] = { key: key, dir: s && s.key === key && s.dir === 'asc' ? 'desc' : 'asc' }; render(); break; }
+      case 'reset-sort': TABLE_SORT[t.id] = t.defaultSort ? Object.assign({}, t.defaultSort) : null; render(); break;
+      case 'filter': e.stopPropagation(); if (filterPop && filterPop.tableId === t.id && filterPop.colKey === key) closeFilterPop(); else openFilter(col(key), a); break;
+      case 'hide': delete t.filters[key]; t.hidden.push(key); saveHidden(); closeFilterPop(); render(); break;
+      case 'show-col': t.hidden = t.hidden.filter((k) => k !== key); saveHidden(); render(); break;
+      case 'show-all': t.hidden = []; saveHidden(); render(); break;
+      case 'clear-filters': Object.keys(t.filters).forEach((k) => delete t.filters[k]); closeFilterPop(); render(); break;
+    }
+  });
+
+  // drag a heading's right edge to resize that column
+  t.mount.addEventListener('mousedown', (e) => {
+    const h = e.target.closest('.rs'); if (!h) return;
+    e.preventDefault(); e.stopPropagation();
+    const key = h.closest('th').dataset.key, c = col(key), colEl = t.mount.querySelector('col[data-key="' + key + '"]'), table = t.mount.querySelector('table');
+    const startX = e.clientX, startW = width(c), otherW = visCols().reduce((n, x) => n + (x.key === key ? 0 : width(x)), 0);
+    h.classList.add('dragging');
+    const move = (ev) => { const w = Math.max(48, Math.round(startW + ev.clientX - startX)); t.widths[key] = w; colEl.style.width = w + 'px'; table.style.width = (otherW + w) + 'px'; };
+    const up = () => { h.classList.remove('dragging'); document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up); LS.set('tbl.' + t.id + '.widths', t.widths); render(); };
+    document.addEventListener('mousemove', move); document.addEventListener('mouseup', up);
+  });
+
+  // Excel-style filter: search, select all, tick values, Clear / OK. Enter (or OK) while searching keeps only the ticked matches.
+  function openFilter(c, anchor) {
+    closeFilterPop();
+    const vals = Array.from(new Set(t.rows.map((r) => text(r, c))));
+    const allNum = c.type === 'num' || vals.filter((v) => v !== '—').every((v) => !isNaN(parseFloat(v.replace(/[^0-9.\-]/g, ''))));
+    const num = (v) => parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+    vals.sort((a, b) => (a === '—') - (b === '—') || (allNum ? num(a) - num(b) : a.localeCompare(b, undefined, { numeric: true })));
+    const draft = new Set(t.filters[c.key] || vals);
+    let query = '';
+    const el = document.createElement('div');
+    el.className = 'filter-pop';
+    el.innerHTML = '<div class="filter-panel"><input class="filter-search" placeholder="Type to search ' + esc(c.label.toLowerCase()) + '…"><div class="filter-hint" hidden></div>' +
+      '<label class="filter-row filter-select-all"><input type="checkbox" data-all> Select all</label><div class="filter-list"></div>' +
+      '<div class="filter-actions"><button class="btn btn-sm" data-f="clear">Clear</button><button class="btn btn-sm btn-navy" data-f="ok">OK</button></div></div>';
+    document.body.appendChild(el);
+    const search = el.querySelector('.filter-search'), list = el.querySelector('.filter-list'), all = el.querySelector('[data-all]'), hint = el.querySelector('.filter-hint');
+    const visible = () => vals.filter((v) => v.toLowerCase().indexOf(query.toLowerCase()) !== -1);
+    function draw() {
+      const vis = visible();
+      list.innerHTML = vis.length ? vis.map((v, i) => '<label class="filter-row"><input type="checkbox" data-i="' + i + '"' + (draft.has(v) ? ' checked' : '') + '> ' + esc(v) + '</label>').join('') : '<div class="filter-empty">No values</div>';
+      all.checked = vis.length > 0 && vis.every((v) => draft.has(v));
+      hint.hidden = !query.trim();
+      hint.textContent = vis.length + ' match' + (vis.length === 1 ? '' : 'es') + ' — OK / Enter shows only the ticked matches';
+      list.querySelectorAll('input').forEach((cb) => cb.addEventListener('change', () => { const v = vis[Number(cb.dataset.i)]; if (cb.checked) draft.add(v); else draft.delete(v); all.checked = vis.every((x) => draft.has(x)); }));
+    }
+    function apply(setOrNull) {
+      if (setOrNull === undefined) {
+        const chosen = query.trim() ? new Set(visible().filter((v) => draft.has(v))) : draft;
+        setOrNull = chosen.size >= vals.length ? null : chosen;
+      }
+      if (setOrNull) t.filters[c.key] = setOrNull; else delete t.filters[c.key];
+      closeFilterPop(); render();
+    }
+    search.addEventListener('input', () => { query = search.value; draw(); });
+    search.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); apply(); } });
+    all.addEventListener('change', () => { visible().forEach((v) => { if (all.checked) draft.add(v); else draft.delete(v); }); draw(); });
+    el.querySelector('[data-f="clear"]').addEventListener('click', () => apply(null));
+    el.querySelector('[data-f="ok"]').addEventListener('click', () => apply());
+    el.addEventListener('click', (e) => e.stopPropagation());
+    el.addEventListener('mousedown', (e) => e.stopPropagation());
+    const reposition = () => {
+      const btn = t.mount.querySelector('th[data-key="' + c.key + '"] .col-filter') || anchor;
+      if (!document.body.contains(btn)) { closeFilterPop(); return; }
+      const r = btn.getBoundingClientRect();
+      el.style.top = (r.bottom + 2) + 'px'; el.style.left = Math.max(4, Math.min(r.left, window.innerWidth - 230)) + 'px';
+    };
+    filterPop = { el, tableId: t.id, colKey: c.key, reposition };
+    draw(); reposition(); search.focus();
+  }
+
+  render();
+  return { render, setRows(rows) { t.rows = rows || []; render(); }, getShownRows: shownRows };
+}
+
+function closeFilterPop() { if (filterPop) { filterPop.el.remove(); filterPop = null; } }
+document.addEventListener('click', () => closeFilterPop());
+window.addEventListener('scroll', () => { if (filterPop) filterPop.reposition(); }, true);
+window.addEventListener('resize', () => { if (filterPop) filterPop.reposition(); });
+
+/* ---------- wiring ---------- */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { closeFilterPop(); closeVersionHistory(); return; }
+  if (document.activeElement && document.activeElement.id === 'vnavBody') onVNavKey(e);
+});
+
+function init() {
+  if (!state.expanded) state.expanded = {};
+  state.cur = normaliseCur(state.cur);
+  state.expanded['s:' + state.cur.s] = true;
+  if (state.cur.sp) state.expanded['p:' + state.cur.s + '/' + state.cur.p] = true;
+
+  renderHeader();
+  $('hnavL1').addEventListener('click', (e) => { const b = e.target.closest('[data-s]'); if (b) go(b.dataset.s); });
+  $('hnavL2').addEventListener('click', (e) => { const b = e.target.closest('[data-p]'); if (b) go(state.cur.s, b.dataset.p); });
+  $('hnavL3').addEventListener('click', (e) => { const b = e.target.closest('[data-sp]'); if (b) go(state.cur.s, state.cur.p, b.dataset.sp); });
+  $('vnavBody').addEventListener('click', onVNavClick);
+  $('vnavBody').addEventListener('dblclick', (e) => {
+    const row = e.target.closest('.vn-all'); if (!row) return;
+    e.preventDefault();
+    const anyClosed = NAV.some((s) => !state.expanded['s:' + s.id] || (s.pages || []).some((p) => p.subpages && p.subpages.length && !state.expanded['p:' + s.id + '/' + p.id]));
+    setAllExpanded(anyClosed);
+  });
+  $('vnavExpand').addEventListener('click', () => setAllExpanded(true));
+  $('vnavCollapse').addEventListener('click', () => setAllExpanded(false));
+  const toggleRail = () => { state.navCollapsed = !state.navCollapsed; LS.set('navCollapsed', state.navCollapsed); renderVNav(); };
+  $('vnavHide').addEventListener('click', toggleRail);
+  $('vnavRail').addEventListener('click', toggleRail);
+  initSplitter();
+  setNavMode(state.navMode);
+  renderContent();
+}
+
+// Exposed for tool code and the browser console
+window.DP = { APP, NAV, go, toast, setHeaderText, setNavMode, DPTable, sectionBlock, LS, esc };
+
+init();
+})();
+</script>
+</body>
+</html>
